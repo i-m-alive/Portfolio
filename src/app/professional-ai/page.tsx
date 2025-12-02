@@ -325,14 +325,24 @@ function Timeline({ items, onOpenCert }: { items: any[]; onOpenCert: (url: strin
 
 /* -------------------------
    Deck component (compact)
-   - NOT exported as default (so module can have a single default export)
+   - now supports swipe on touch devices
    ------------------------- */
-function Deck({ items, renderContent }: { items: any[]; renderContent: (item: any, index: number) => ReactElement | null }) {  const [index, setIndex] = useState(0);
+function Deck({
+  items,
+  renderContent,
+}: {
+  items: any[];
+  renderContent: (item: any, index: number) => ReactElement | null;
+}) {
+  const [index, setIndex] = useState(0);
   const indexRef = useRef(0);
   const lockRef = useRef(false);
   const moveRef = useRef<(dir: number) => void>(() => {});
   const reduceMotion = !!useReducedMotion();
   const variants = buildVariants(reduceMotion);
+
+  // 👇 touch state for swipe
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     indexRef.current = index;
@@ -363,23 +373,75 @@ function Deck({ items, renderContent }: { items: any[]; renderContent: (item: an
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // 👉 swipe handlers (horizontal swipe like mobile card decks)
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    const t = e.touches[0];
+    touchStartRef.current = { x: t.clientX, y: t.clientY };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!touchStartRef.current) return;
+    const start = touchStartRef.current;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+    const THRESHOLD = 40; // px
+
+    // Only trigger on horizontal swipes
+    if (absDx > THRESHOLD && absDx > absDy) {
+      if (dx < 0) {
+        // swipe left => next card
+        move(1);
+      } else {
+        // swipe right => previous card
+        move(-1);
+      }
+    }
+
+    touchStartRef.current = null;
+  };
+
   const atStart = index === 0;
   const atEnd = index === items.length - 1;
   const ARROW_Z = 1200;
 
   return (
     <div className="flex items-center justify-center w-full">
-      <div className="relative h-[420px] w-full max-w-4xl flex items-center justify-center select-none" style={{ overflow: "visible" }}>
+      <div
+        className="relative h-[420px] w-full max-w-4xl flex items-center justify-center select-none"
+        style={{ overflow: "visible" }}
+        // 👇 swipe region for phone users
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <button
           aria-label="Previous"
           onClick={() => move(-1)}
           disabled={atStart}
           style={{ zIndex: ARROW_Z, pointerEvents: "auto" }}
-          className={`absolute left-0 md:left-[-56px] top-1/2 -translate-y-1/2 rounded-full p-3 md:p-4 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition ${atStart ? "opacity-30 cursor-not-allowed" : "bg-white/6 hover:bg-white/10"}`}
+          className={`absolute left-0 md:left-[-56px] top-1/2 -translate-y-1/2 rounded-full p-3 md:p-4 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition ${
+            atStart
+              ? "opacity-30 cursor-not-allowed"
+              : "bg-white/6 hover:bg-white/10"
+          }`}
         >
           <span className="sr-only">Previous</span>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path d="M15 6L9 12L15 18" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden
+          >
+            <path
+              d="M15 6L9 12L15 18"
+              stroke="white"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </button>
 
@@ -388,11 +450,27 @@ function Deck({ items, renderContent }: { items: any[]; renderContent: (item: an
           onClick={() => move(1)}
           disabled={atEnd}
           style={{ zIndex: ARROW_Z, pointerEvents: "auto" }}
-          className={`absolute right-0 md:right-[-56px] top-1/2 -translate-y-1/2 rounded-full p-3 md:p-4 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition ${atEnd ? "opacity-30 cursor-not-allowed" : "bg-white/6 hover:bg-white/10"}`}
+          className={`absolute right-0 md:right-[-56px] top-1/2 -translate-y-1/2 rounded-full p-3 md:p-4 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition ${
+            atEnd
+              ? "opacity-30 cursor-not-allowed"
+              : "bg-white/6 hover:bg-white/10"
+          }`}
         >
           <span className="sr-only">Next</span>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path d="M9 6L15 12L9 18" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden
+          >
+            <path
+              d="M9 6L15 12L9 18"
+              stroke="white"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </button>
 
@@ -404,17 +482,24 @@ function Deck({ items, renderContent }: { items: any[]; renderContent: (item: an
           const rotate = isActive ? 0 : offset * 8.5;
           const x = offset * 24;
           const y = isActive ? 0 : offset * -14;
-          const scale = isActive ? 1 : 0.94 - Math.min(0.03, Math.abs(offset) * 0.008);
+          const scale =
+            isActive ? 1 : 0.94 - Math.min(0.03, Math.abs(offset) * 0.008);
           const blur = isActive ? "none" : "blur(2px)";
           const cardZ = 200 - Math.abs(offset) * 10;
 
-          // explicit cast to React.ReactNode so TS won't infer 'unknown'
-          const content: React.ReactNode = renderContent(item, i) as React.ReactNode | null;
+          const content: React.ReactNode = renderContent(
+            item,
+            i
+          ) as React.ReactNode | null;
 
           return (
             <motion.div
               key={(item as any).id ?? i}
-              initial={reduceMotion ? ({} as any) : ({ opacity: 0, y: 12 } as any)}
+              initial={
+                reduceMotion
+                  ? ({} as any)
+                  : ({ opacity: 0, y: 12 } as any)
+              }
               animate={
                 {
                   rotate,
@@ -425,18 +510,65 @@ function Deck({ items, renderContent }: { items: any[]; renderContent: (item: an
                   opacity: isActive ? 1 : 0.22,
                 } as any
               }
-              transition={{ type: "spring", stiffness: 110, damping: 16 } as any}
+              transition={{
+                type: "spring",
+                stiffness: 110,
+                damping: 16,
+              } as any}
               style={{ zIndex: cardZ, pointerEvents: "auto" }}
               className="absolute"
             >
               <div className="w-[320px] md:w-[380px] lg:w-[440px]">
-                <motion.div whileHover={isActive && !reduceMotion ? ({ translateY: -6 } as any) : undefined} className={`rounded-2xl border border-white/12 bg-gradient-to-b from-white/6 to-white/5 shadow-2xl`} style={{ padding: 6, boxShadow: isActive ? "0 18px 36px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.02)" : "0 10px 26px rgba(0,0,0,0.5)" }} role="group">
-                  <div className="overflow-hidden rounded-xl" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.78), rgba(0,0,0,0.62))", padding: 18, minHeight: 220, width: "100%" }}>
-                    <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.25 }} variants={isActive ? (variants.subtleSpring as any) : (variants.up as any)}>
+                <motion.div
+                  whileHover={
+                    isActive && !reduceMotion
+                      ? ({ translateY: -6 } as any)
+                      : undefined
+                  }
+                  className="rounded-2xl border border-white/12 bg-gradient-to-b from-white/6 to-white/5 shadow-2xl"
+                  style={{
+                    padding: 6,
+                    boxShadow: isActive
+                      ? "0 18px 36px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.02)"
+                      : "0 10px 26px rgba(0,0,0,0.5)",
+                  }}
+                  role="group"
+                >
+                  <div
+                    className="overflow-hidden rounded-xl"
+                    style={{
+                      background:
+                        "linear-gradient(180deg, rgba(0,0,0,0.78), rgba(0,0,0,0.62))",
+                      padding: 18,
+                      minHeight: 220,
+                      width: "100%",
+                    }}
+                  >
+                    <motion.div
+                      initial="hidden"
+                      whileInView="show"
+                      viewport={{ once: true, amount: 0.25 }}
+                      variants={
+                        isActive
+                          ? (variants.subtleSpring as any)
+                          : (variants.up as any)
+                      }
+                    >
                       <div className="relative z-10">{content}</div>
                     </motion.div>
 
-                    <div aria-hidden style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.12) 100%)", mixBlendMode: "overlay", borderRadius: 12 }} />
+                    <div
+                      aria-hidden
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        pointerEvents: "none",
+                        background:
+                          "linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.12) 100%)",
+                        mixBlendMode: "overlay",
+                        borderRadius: 12,
+                      }}
+                    />
                   </div>
                 </motion.div>
               </div>
@@ -446,7 +578,15 @@ function Deck({ items, renderContent }: { items: any[]; renderContent: (item: an
 
         <div className="absolute z-40 flex gap-2 -translate-x-1/2 bottom-4 left-1/2">
           {items.map((_, i) => (
-            <button key={i} onClick={() => setIndex(i)} aria-label={`Go to ${i + 1}`} className={`w-2 h-2 rounded-full transition ${i === index ? "bg-cyan-400" : "bg-white/10"}`} style={{ pointerEvents: "auto" }} />
+            <button
+              key={i}
+              onClick={() => setIndex(i)}
+              aria-label={`Go to ${i + 1}`}
+              className={`w-2 h-2 rounded-full transition ${
+                i === index ? "bg-cyan-400" : "bg-white/10"
+              }`}
+              style={{ pointerEvents: "auto" }}
+            />
           ))}
         </div>
       </div>

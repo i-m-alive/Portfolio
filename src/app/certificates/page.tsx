@@ -19,7 +19,8 @@ const SolarPreview = dynamic(
   () => import("@/app/components/orbit/SolarPreview"),
   {
     ssr: false,
-    loading: () => <div style={{ height: 180 }} />,
+    // Smaller placeholder height now
+    loading: () => <div style={{ height: 140 }} />,
   }
 );
 
@@ -308,7 +309,7 @@ const CERTS = [
     credentialId: "UMDXYF05R4SI",
     credentialUrl:
       "https://www.coursera.org/account/accomplishments/verify/UMDXYF05R4SI",
-    image: "/certs/leading-teams.png",
+    image: "/certs/leading.png",
   },
   {
     id: "transformer-bert",
@@ -534,6 +535,9 @@ export default function CertificatePage() {
   const rightSectionRef = useRef<HTMLDivElement | null>(null);
   const deckRef = useRef<HTMLDivElement | null>(null);
 
+  // Touch state for swipe
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+
   const [mounted, setMounted] = useState(false);
   const [index, setIndex] = useState(0);
   const [modalCert, setModalCert] = useState<any | null>(null);
@@ -580,6 +584,36 @@ export default function CertificatePage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [modalCert]);
 
+  // Swipe handlers (for phone-like swapping)
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    const t = e.touches[0];
+    touchStartRef.current = { x: t.clientX, y: t.clientY };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!touchStartRef.current) return;
+    const start = touchStartRef.current;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+    const THRESHOLD = 40; // minimum px swipe
+
+    // Only trigger for horizontal, strong swipe
+    if (absDx > THRESHOLD && absDx > absDy) {
+      if (dx < 0) {
+        // swipe left => next certificate
+        next();
+      } else {
+        // swipe right => previous certificate
+        prev();
+      }
+    }
+
+    touchStartRef.current = null;
+  };
+
   const H_SPREAD_FACTOR = 0.08;
   const ROTATE_FACTOR = 4.0;
 
@@ -597,17 +631,20 @@ export default function CertificatePage() {
         <div className="grid items-start grid-cols-1 gap-8 md:grid-cols-3">
           <aside className="md:col-span-1">
             <div className="sticky space-y-6 top-24">
+              {/* Reduced height and SolarPreview scale */}
               <div
                 className="p-4 border border-white/8 rounded-2xl bg-black/40 backdrop-blur-md"
-                style={{ height: 400 }}
+                style={{ height: 260 }}
               >
-                <SolarPreview scale={1} />
+                {/* you can tweak scale further (0.6 / 0.7) if you want it even smaller */}
+                <SolarPreview scale={0.7} height="240px"/>
               </div>
 
               <div className="p-4 border rounded-2xl bg-white/3 border-white/6">
                 <div className="text-sm font-semibold">Certificates</div>
                 <div className="mt-2 text-xs text-white/70">
-                  Click the front card to open details & verification link.
+                  Tap the front card to open details, or swipe left/right on
+                  mobile to swap certificates.
                 </div>
               </div>
             </div>
@@ -642,6 +679,9 @@ export default function CertificatePage() {
                   style={{ height: cardSize.h + 80 }}
                   className="relative"
                   ref={deckRef}
+                  // swipe region
+                  onTouchStart={handleTouchStart}
+                  onTouchEnd={handleTouchEnd}
                 >
                   {!modalCert && (
                     <>
@@ -710,7 +750,9 @@ export default function CertificatePage() {
                         key={c.id}
                         initial={false}
                         animate={{ x, y, rotate, scale, opacity }}
-                        transition={reduceMotion ? { duration: 0.08 } : ACTION_TRANS}
+                        transition={
+                          reduceMotion ? { duration: 0.08 } : ACTION_TRANS
+                        }
                         style={{
                           position: "absolute",
                           left,

@@ -43,6 +43,9 @@ export default function ProjectsCarousel({ projects }: { projects: Project[] }) 
   const reduceMotion = useReducedMotion();
   const variants = buildVariants(reduceMotion);
 
+  // 👉 touch state for swipe on phone
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+
   useEffect(() => {
     indexRef.current = index;
   }, [index]);
@@ -72,6 +75,36 @@ export default function ProjectsCarousel({ projects }: { projects: Project[] }) 
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // 👉 swipe handlers (horizontal swipe like a phone card stack)
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    const t = e.touches[0];
+    touchStartRef.current = { x: t.clientX, y: t.clientY };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!touchStartRef.current) return;
+    const start = touchStartRef.current;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+    const THRESHOLD = 40; // px
+
+    // only horizontal swipes
+    if (absDx > THRESHOLD && absDx > absDy) {
+      if (dx < 0) {
+        // swipe left → next project
+        move(1);
+      } else {
+        // swipe right → previous project
+        move(-1);
+      }
+    }
+
+    touchStartRef.current = null;
+  };
+
   const atStart = index === 0;
   const atEnd = index === projects.length - 1;
 
@@ -80,67 +113,107 @@ export default function ProjectsCarousel({ projects }: { projects: Project[] }) 
 
   return (
     <section className="space-y-4">
-      <h3 className="mb-1 text-2xl font-semibold text-cyan-100">Featured AI Projects</h3>
+      <h3 className="mb-1 text-2xl font-semibold text-cyan-100">
+        Featured AI Projects
+      </h3>
 
       {/* Arrow row above the cards */}
-      <div className="relative flex items-center justify-center w-full mb-2" style={{ minHeight: 44 }}>
-        {/* left arrow (placed above and slightly outside the left edge of the card stack) */}
+      <div
+        className="relative flex items-center justify-center w-full mb-2"
+        style={{ minHeight: 44 }}
+      >
+        {/* left arrow */}
         <button
           aria-label="Previous project"
           onClick={() => move(-1)}
           disabled={atStart}
           className={`p-3 rounded-full transition transform shadow-lg focus:outline-none ${
-            atStart ? "opacity-40 cursor-not-allowed bg-white/6" : "bg-cyan-400/95 hover:scale-105"
+            atStart
+              ? "opacity-40 cursor-not-allowed bg-white/6"
+              : "bg-cyan-400/95 hover:scale-105"
           }`}
           style={{
             position: "absolute",
-            left: `calc(50% - ${CARD_WIDTH / 2 + 64}px)`, // placed left of the centered deck
+            left: `calc(50% - ${CARD_WIDTH / 2 + 64}px)`,
             top: 0,
             zIndex: 80,
           }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path d="M15 6L9 12L15 18" stroke="black" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden
+          >
+            <path
+              d="M15 6L9 12L15 18"
+              stroke="black"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </button>
 
-        {/* right arrow (placed above and slightly outside the right edge of the card stack) */}
+        {/* right arrow */}
         <button
           aria-label="Next project"
           onClick={() => move(1)}
           disabled={atEnd}
           className={`p-3 rounded-full transition transform shadow-lg focus:outline-none ${
-            atEnd ? "opacity-40 cursor-not-allowed bg-white/6" : "bg-cyan-400/95 hover:scale-105"
+            atEnd
+              ? "opacity-40 cursor-not-allowed bg-white/6"
+              : "bg-cyan-400/95 hover:scale-105"
           }`}
           style={{
             position: "absolute",
-            right: `calc(50% - ${CARD_WIDTH / 2 + 64}px)`, // symmetric to left arrow
+            right: `calc(50% - ${CARD_WIDTH / 2 + 64}px)`,
             top: 0,
             zIndex: 80,
           }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path d="M9 6L15 12L9 18" stroke="black" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden
+          >
+            <path
+              d="M9 6L15 12L9 18"
+              stroke="black"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </button>
 
-        {/* optional small caption or spacer (center) */}
-        <div className="text-sm text-white/60">Use arrows or keyboard to navigate</div>
+        <div className="text-sm text-white/60">
+          Use arrows, keyboard, or swipe on mobile
+        </div>
       </div>
 
       {/* Deck row: cards sit directly below arrows */}
       <div className="relative w-full">
-        <div className="relative flex items-center justify-center w-full h-[300px] select-none" style={{ overflow: "visible" }}>
+        <div
+          className="relative flex items-center justify-center w-full h-[300px] select-none"
+          style={{ overflow: "visible" }}
+          // 👇 swipe region for touch devices
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           {projects.map((item, i) => {
             const offset = i - index;
             if (offset < -5 || offset > 5) return null;
 
             const isActive = offset === 0;
-            // stacked transform values
             const rotate = isActive ? 0 : offset * 6.5;
             const x = offset * 18;
             const y = isActive ? 0 : offset * -10;
-            const scale = isActive ? 1 : 0.945 - Math.min(0.02, Math.abs(offset) * 0.005);
+            const scale =
+              isActive ? 1 : 0.945 - Math.min(0.02, Math.abs(offset) * 0.005);
             const blur = isActive ? "none" : "blur(1.8px)";
             const z = 300 - Math.abs(offset) * 10;
 
@@ -161,9 +234,11 @@ export default function ProjectsCarousel({ projects }: { projects: Project[] }) 
                 className="w-[280px] md:w-[320px] lg:w-[340px]"
               >
                 <motion.div
-                  whileHover={!reduceMotion && isActive ? { translateY: -6 } : {}}
+                  whileHover={
+                    !reduceMotion && isActive ? { translateY: -6 } : {}
+                  }
                   transition={{ type: "spring", stiffness: 220, damping: 18 }}
-                  className={`rounded-2xl border border-white/12 shadow-2xl`}
+                  className="rounded-2xl border border-white/12 shadow-2xl"
                   style={{
                     padding: 6,
                     boxShadow: isActive
@@ -174,13 +249,21 @@ export default function ProjectsCarousel({ projects }: { projects: Project[] }) 
                   <div
                     className="overflow-hidden rounded-xl"
                     style={{
-                      background: "linear-gradient(180deg, rgba(0,0,0,0.78), rgba(0,0,0,0.62))",
+                      background:
+                        "linear-gradient(180deg, rgba(0,0,0,0.78), rgba(0,0,0,0.62))",
                       padding: 14,
                       minHeight: 180,
                       width: "100%",
+                      position: "relative",
                     }}
                   >
-                    <motion.div initial="hidden" animate="show" variants={isActive ? variants.subtleSpring : variants.up}>
+                    <motion.div
+                      initial="hidden"
+                      animate="show"
+                      variants={
+                        isActive ? variants.subtleSpring : variants.up
+                      }
+                    >
                       <ProjectCardContent p={item} />
                     </motion.div>
 
@@ -190,7 +273,8 @@ export default function ProjectsCarousel({ projects }: { projects: Project[] }) 
                         position: "absolute",
                         inset: 0,
                         pointerEvents: "none",
-                        background: "linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.12) 100%)",
+                        background:
+                          "linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.12) 100%)",
                         mixBlendMode: "overlay",
                         borderRadius: 12,
                       }}
@@ -208,7 +292,9 @@ export default function ProjectsCarousel({ projects }: { projects: Project[] }) 
                 key={i}
                 onClick={() => setIndex(i)}
                 aria-label={`Go to ${i + 1}`}
-                className={`w-2 h-2 rounded-full transition ${i === index ? "bg-cyan-400" : "bg-white/10"}`}
+                className={`w-2 h-2 rounded-full transition ${
+                  i === index ? "bg-cyan-400" : "bg-white/10"
+                }`}
                 style={{ pointerEvents: "auto" }}
               />
             ))}
@@ -220,7 +306,7 @@ export default function ProjectsCarousel({ projects }: { projects: Project[] }) 
 }
 
 /* -------------------------
-   Project card UI (compact) - Open button removed
+   Project card UI (compact)
    ------------------------- */
 function ProjectCardContent({ p }: { p: Project }) {
   const title = p.title;
@@ -228,7 +314,9 @@ function ProjectCardContent({ p }: { p: Project }) {
   return (
     <div className="flex flex-col h-full text-white">
       <div className="flex-1">
-        <h3 className="text-lg font-bold leading-tight md:text-xl drop-shadow-md">{title}</h3>
+        <h3 className="text-lg font-bold leading-tight md:text-xl drop-shadow-md">
+          {title}
+        </h3>
 
         <div className="mt-2">
           <p
@@ -242,7 +330,10 @@ function ProjectCardContent({ p }: { p: Project }) {
         {p.tech && p.tech.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-3">
             {p.tech.map((t) => (
-              <span key={t} className="px-2 py-1 text-xs border rounded bg-white/10 border-white/10 text-white/90">
+              <span
+                key={t}
+                className="px-2 py-1 text-xs border rounded bg-white/10 border-white/10 text-white/90"
+              >
                 {t}
               </span>
             ))}
