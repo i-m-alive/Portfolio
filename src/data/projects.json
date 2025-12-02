@@ -1,0 +1,170 @@
+[
+  {
+    "title": "MindDocs AI",
+    "slug": "minddocs-ai",
+    "short": "Multi-modal AI system for document summarization, translation, and domain-specific RAG chatbots.",
+    "status": "code-only",
+    "github": "https://github.com/i-m-alive/MindDocs",
+    "tech": ["LangChain", "HuggingFace", "Azure Blob", "Docker", "FAISS"],
+    "cover": "/projects/minddocs-ai/cover.jpg",
+    "images": [
+      "/projects/minddocs-ai/arch.png",
+      "/projects/minddocs-ai/ui.png",
+      "/projects/minddocs-ai/results.png"
+    ],
+    "last_updated": "2025-09-30",
+    "excerpt": "Built multimodal document processing and RAG chatbots; integrated Azure Blob, LangChain and Hugging Face; deployed containerized services with CI/CD.",
+    "desc": "End-to-end multimodal pipeline that ingests PDFs/images, runs OCR, creates embeddings and serves RAG-based chatbots and summarizers with multi-language translation support.",
+    "architecture": [
+      "Ingest: Azure Blob storage + uploader microservice.",
+      "Preprocess: OCR (Tesseract / Vision encoder) → text normalization → chunking.",
+      "Embeddings & Indexing: Hugging Face embedding model → vector store (FAISS) with per-document metadata.",
+      "RAG + Orchestration: LangChain agents assemble context → open/closed-source LLMs for generation and translation.",
+      "Serving: REST/GraphQL API + lightweight frontend; asynchronous jobs for heavy preprocessing."
+    ],
+    "metric": "18% uplift in retrieval relevance (user-tested) · avg retrieval latency ~220ms",
+    "ops": "Containerized microservices (Docker). CI/CD pipelines build images, push to registry, and deploy to Kubernetes. Uses Azure Blob for storage and automated nightly indexing jobs.",
+    "related": ["AIIMS Resident's Manual", "Legal Sage"]
+  },
+  {
+    "title": "Tourist Buddy",
+    "slug": "tourist-buddy",
+    "short": "AI-powered trip planner that generates budget-friendly itineraries, route maps, day-wise plans, weather insights, and expenditure breakdowns using agentic workflows.",
+    "status": "code-only",
+    "github": "https://github.com/i-m-alive/tourist-buddy-",
+    "tech": [
+      "LangChain",
+      "LangGraph",
+      "FastAPI",
+      "React.js",
+      "Open-source LLM (Gorq)",
+      "Weather API",
+      "Maps API",
+      "DuckDuckGo Search",
+      "Web Scraping"
+    ],
+    "cover": "/projects/tourist-buddy/cover.png",
+    "images": [
+      "/projects/tourist-buddy/arch.png",
+      "/projects/tourist-buddy/itinerary.png",
+      "/projects/tourist-buddy/results.png"
+    ],
+    "last_updated": "2025-12-01",
+    "excerpt": "Built an agentic AI travel planner leveraging open-source LLMs, weather + map APIs, DuckDuckGo search and web scraping. Generates optimized itineraries, routes, daily plans, and budget estimates end-to-end.",
+    "desc": "Agent-driven itinerary generator that combines LLM reasoning, real-time API data (maps, weather, pricing), and optimization heuristics to produce multi-day travel plans tuned for budget and preferences.",
+    "architecture": [
+      "Frontend: React SPA for input + itinerary preview.",
+      "API Layer: FastAPI exposes endpoints for itinerary generation and session management.",
+      "Agent Stack: LangChain + LangGraph orchestrate sub-agents (places, transport, budget, weather).",
+      "Data: Live API calls (Maps, Weather) + cached scraped POIs; embeddings for user preferences.",
+      "Optimizer: Simple constraint solver for time/budget tradeoffs; route generation using Maps API."
+    ],
+    "metric": "Generates full 3-day itineraries in ~6s; early user tests show high usefulness (avg satisfaction 4.6 / 5).",
+    "ops": "Microservices packaged with Docker; CI builds to container registry. Can be deployed to managed containers (Cloud Run / ECS) with scheduled cache refresh jobs.",
+    "related": ["MindDocs AI"]
+  },
+  {
+    "title": "AI Chatbot — Resident's Manual (AIIMS)",
+    "slug": "aiims-chatbot",
+    "short": "Domain-specific LLM chatbot for hospital residents; achieved 92% accuracy on domain queries.",
+    "status": "code-only",
+    "github": "https://github.com/i-m-alive/aiims-resident-chatbot",
+    "tech": ["BERT", "FAISS", "LangChain", "PyTorch"],
+    "cover": "/projects/aiims-chatbot/cover.jpg",
+    "images": [
+      "/projects/aiims-chatbot/arch.png",
+      "/projects/aiims-chatbot/sample-q.png",
+      "/projects/aiims-chatbot/results.png"
+    ],
+    "last_updated": "2024-11-20",
+    "excerpt": "Custom LLM chatbot for medical QA using FAISS and retrieval-augmented generation.",
+    "desc": "Specialized retrieval-augmented chatbot tuned for medical residents, focused on high-precision answers for procedural and policy queries from the hospital manual.",
+    "architecture": [
+      "Data ingestion: Convert resident manual PDFs → structured passages with metadata.",
+      "Indexing: Sentence/document embeddings → FAISS index with section tags.",
+      "Model: Lightweight BERT-based ranker + PyTorch-backed reader/generation model in RAG loop.",
+      "Safety: Heuristic filters + citations returned with answers for verification.",
+      "UX: Web-based chat UI that surfaces source passages and confidence score."
+    ],
+    "metric": "92% accuracy on internal domain QA benchmark; 85% of answers include exact source citation.",
+    "ops": "Containerized (Docker) with CI that runs tests and pushes images. Deployable to Kubernetes or VM; periodic re-indexing pipeline for manual updates.",
+    "related": ["MindDocs AI", "Legal Sage"]
+  },
+  {
+    "title": "Legal Sage",
+    "slug": "legal-sage",
+    "short": "Legal document summarization and multi-language translation toolkit (BERT / T5).",
+    "status": "code-only",
+    "github": "https://github.com/i-m-alive/Legal-Sage",
+    "tech": ["T5", "GPT-2", "spaCy", "Docker"],
+    "cover": "/projects/legal-sage/cover.jpg",
+    "images": [
+      "/projects/legal-sage/arch.png",
+      "/projects/legal-sage/example-summary.png",
+      "/projects/legal-sage/results.png"
+    ],
+    "last_updated": "2024-07-15",
+    "excerpt": "Fine-tuned BERT/GPT-2/T5 for summarization and structured extraction pipelines for legal professionals.",
+    "desc": "Toolkit to summarize legal contracts and extract structured clause-level information with optional multi-language translation for cross-jurisdiction review.",
+    "architecture": [
+      "Preprocessing: spaCy pipelines for tokenization, NER, and clause segmentation.",
+      "Models: Fine-tuned T5 / GPT-2 for abstractive summaries; classifier heads for clause tagging.",
+      "Postprocess: Rule-based validators to convert summaries into structured JSON (parties, dates, obligations).",
+      "Integration: CLI + REST wrapper for batch processing of document sets."
+    ],
+    "metric": "Clause-extraction F1 ≈ 0.91 on internal test set; summaries reduced manual review time by ~40% in trials.",
+    "ops": "Packaged as Docker images; recommended deployment on private infra for confidentiality. CI runs unit + integration tests; supports on-prem or cloud VM deployment.",
+    "related": ["MindDocs AI", "AIIMS Resident's Manual"]
+  },
+  {
+    "title": "MeetScheduler",
+    "slug": "meet-scheduler",
+    "short": "AI-powered Google Workspace meeting scheduling agent built on Google Cloud Platform.",
+    "status": "code-only",
+    "github": "https://github.com/i-m-alive/Google-meeting-Scheduling-assistant",
+    "tech": ["GCP", "Google Calendar API", "Google Meet API", "Gmail API", "App Script", "Webhook Agents"],
+    "cover": "/projects/meet-schedule/cover.jpg",
+    "images": [
+      "/projects/meet-scheduler/arch.png",
+      "/projects/meet-scheduler/ui.png"
+    ],
+    "last_updated": "2025-01-10",
+    "excerpt": "Built an intelligent agent on Google Cloud that automates scheduling, notifying attendees, blocking calendars, and managing Google Meet and Calendar events end-to-end.",
+    "desc": "Automates meeting scheduling across Google Workspace accounts using heuristics + small LLM prompts to infer meeting preferences and availability.",
+    "architecture": [
+      "Trigger: webhook / App Script when a scheduling request arrives.",
+      "Scheduler: Service queries Google Calendar & runs conflict-resolution heuristics.",
+      "Notifications: Gmail API for invites; Google Meet link automatic creation.",
+      "Agents: Webhook agents handle follow-ups, rescheduling, and cancellations.",
+      "Audit: Logs and event history stored for traceability."
+    ],
+    "metric": "Automated ~80% of routine scheduling flows in test pilot; reduces human scheduling time by ~30%.",
+    "ops": "Hosted on GCP (Cloud Run / App Engine) with service account-based auth. CI/CD for deployments and infra-as-code for service bindings.",
+    "related": []
+  },
+  {
+    "title": "Artimacy",
+    "slug": "artimacy",
+    "short": "E-commerce platform for handicrafts, artworks and sketches — an early front-end project showcasing responsive UI and product listing UX.",
+    "status": "code-only",
+    "github": "https://github.com/i-m-alive/Artimacy-Ecommerce-website",
+    "tech": ["HTML", "CSS", "JavaScript"],
+    "cover": "/projects/artimacy/cover.jpg",
+    "images": [
+      "/projects/artimacy/home.png",
+      "/projects/artimacy/product.png"
+    ],
+    "last_updated": "2025-11-25",
+    "excerpt": "Initial handcrafted e-commerce site built with vanilla HTML/CSS/JS: product pages, responsive layout, cart simulation, and basic client-side interactions.",
+    "desc": "MVP front-end store demonstrating layout, responsive gallery, product cards and a simulated cart for showcasing artwork listings.",
+    "architecture": [
+      "Static frontend: responsive pages with modular components (product card, gallery, cart).",
+      "Client-side state: JS-based cart and filter logic (no backend in MVP).",
+      "Assets: Optimized images and lazy-loading for performance.",
+      "Extensibility: Designed to plug into any REST backend or headless CMS later."
+    ],
+    "metric": "MVP completed; responsive layouts consistently under 500ms on local tests; early usability tested with a small group (5 users).",
+    "ops": "Static site deployable on Netlify / Vercel or any static host. No CI required for MVP—CI/CD added when connecting to a backend.",
+    "related": []
+  }
+]
