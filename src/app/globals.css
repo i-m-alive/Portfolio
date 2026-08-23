@@ -321,3 +321,30 @@ img {
     scroll-behavior: auto !important;
   }
 }
+
+
+/* --- education book: slim in-page scrollbar -----------------------------
+   The book pages scroll independently. The global 8px scrollbar is far too
+   heavy inside a ~390px-wide page, so give these a hairline treatment.
+
+   `scrollbar-gutter: stable` is the important one: without it the gutter is
+   only reserved on pages whose content actually overflows, so the text column
+   was a few px narrower on those pages than on the short ones and the layout
+   shifted on every turn. Reserving it unconditionally keeps every page
+   identical whether or not it scrolls. */
+.book-page-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(6, 246, 255, 0.22) transparent;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+}
+.book-page-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.book-page-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.book-page-scroll::-webkit-scrollbar-thumb {
+  background: rgba(6, 246, 255, 0.22);
+  border-radius: 4px;
+}

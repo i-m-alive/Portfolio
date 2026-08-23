@@ -15,7 +15,7 @@ const EXPERIENCES: Exp[] = [
     title: "Software Engineer (Full-time)",
     type: "Full-time",
     period: "Oct 2025 - Present",
-    location: "Noida, India",
+    location: "Bengaluru, India",
     summary: "Promoted to full-time after a 7-month internship; building AI-driven solutions and agentic projects.",
     skills: ["Langgraph", "Agentic", "Python", "LLMs"],
     avatar: "/work/avatar2.png",

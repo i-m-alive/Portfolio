@@ -259,7 +259,7 @@ export default function ContactPage() {
   const linkedInUrl =
     "https://www.linkedin.com/in/kumar-shivraj-bhakat-6403b7236/";
   const githubUrl = "https://github.com/i-m-alive";
-  const locationLabel = "Nagpur, Maharashtra";
+  const locationLabel = "Bengaluru, Karnataka";
 
   const [profileActive, setProfileActive] = useState(false);
   const onProfileClick = useCallback(() => setProfileActive(true), []);
@@ -562,7 +562,7 @@ export default function ContactPage() {
                   <div className="text-base font-medium">{locationLabel}</div>
                 </div>
                 <div className="mt-1 text-sm text-white/70">
-                  Available for opportunities in and around Nagpur. Willing to
+                  Available for opportunities in and around Bengaluru. Willing to
                   relocate / remote work as needed.
                 </div>
               </div>

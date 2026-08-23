@@ -402,7 +402,7 @@ export default function ProfessionalPage() {
               variants={fadeUp}
               className="mt-2 text-lg text-cyan-200"
             >
-              AI/ML Engineer · Nagpur, India
+              AI/ML Engineer · Bengaluru, India
             </motion.div>
 
             <motion.p

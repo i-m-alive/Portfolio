@@ -1,368 +1,681 @@
 // src/app/education/components/EducationBookModal.tsx
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useTransform,
+  type PanInfo,
+} from "framer-motion";
 import Image from "next/image";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { BOOK_PAGES, PAGE_COUNT, type PageContext } from "../bookPages";
 
 type Props = { onClose: () => void };
-const PAGES = 7;
 
-export default function EducationBookModal({ onClose }: Props) {
-  const [leftIndex, setLeftIndex] = useState(0);
-  const [isFlipping, setIsFlipping] = useState(false);
-  const [fullImage, setFullImage] = useState<string | null>(null);
-  const [coverOpened, setCoverOpened] = useState(false);
-  const [flipDirection, setFlipDirection] = useState<"next" | "prev" | null>(null);
+/** Direction and the spread we are leaving. */
+type Flip = { dir: "next" | "prev"; from: number };
 
-  // flip functions declared *before* keyboard effect so ESLint won't complain
-  const maxLeft = PAGES - 1;
+const FLIP_MS = 620;
+const EASE = [0.32, 0.72, 0.28, 1] as const;
 
-  const flipNext = useCallback(() => {
-    if (isFlipping) return;
-    if (leftIndex + 2 >= PAGES) return;
-    setIsFlipping(true);
-    setFlipDirection("next");
-    // animation length
-    setTimeout(() => {
-      setLeftIndex((i) => Math.min(maxLeft, i + 2));
-      setIsFlipping(false);
-      setFlipDirection(null);
-    }, 560);
-  }, [leftIndex, isFlipping]);
+const FOCUSABLE =
+  'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
-  const flipPrev = useCallback(() => {
-    if (isFlipping) return;
-    if (leftIndex - 2 < 0) return;
-    setIsFlipping(true);
-    setFlipDirection("prev");
-    setTimeout(() => {
-      setLeftIndex((i) => Math.max(0, i - 2));
-      setIsFlipping(false);
-      setFlipDirection(null);
-    }, 560);
-  }, [leftIndex, isFlipping]);
+/* ---------------------------------------------------------------- viewport */
 
-  // Run cover-open animation on mount
+/**
+ * Two-page spread on md+, single page below it. A phone cannot show a readable
+ * spread — the old version tried, which is why each half ended up with its own
+ * nested scrollbar.
+ */
+function useIsSpread() {
+  // Read the real value up front. The modal only ever mounts on the client (it
+  // renders behind `open`, which starts false), so there is no hydration
+  // mismatch to worry about — and defaulting to `true` meant a phone painted
+  // the wide 3/2 spread box for one frame before snapping to the tall 3/4 one,
+  // which looked like the book resizing as it opened.
+  const [isSpread, setIsSpread] = useState(() =>
+    typeof window === "undefined"
+      ? true
+      : window.matchMedia("(min-width: 768px)").matches
+  );
   useEffect(() => {
-    setCoverOpened(false);
-    const t = setTimeout(() => setCoverOpened(true), 220);
-    return () => clearTimeout(t);
+    const mq = window.matchMedia("(min-width: 768px)");
+    const apply = () => setIsSpread(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
   }, []);
+  return isSpread;
+}
 
-  // keyboard nav (declared after flipNext/flipPrev)
-  useEffect(() => {
-    function handler(e: KeyboardEvent) {
-      if (e.key === "ArrowRight") flipNext();
-      if (e.key === "ArrowLeft") flipPrev();
-      if (e.key === "Escape") {
-        if (fullImage) setFullImage(null);
-        else onClose();
-      }
-    }
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [flipNext, flipPrev, fullImage, onClose]);
+/* -------------------------------------------------------------------- page */
 
-  // drag heuristics
-  function handleDragEnd(info: { offset: { x: number }; velocity: { x: number } }, side: "left" | "right") {
-    const { offset, velocity } = info;
-    const vx = velocity.x;
-    const dx = offset.x;
-    const strong = Math.abs(vx) > 600 || Math.abs(dx) > 120;
-    if (!strong) return;
+function PageFace({
+  page,
+  side,
+  ctx,
+}: {
+  page: number;
+  side: "left" | "right" | "solo";
+  ctx: PageContext;
+}) {
+  const entry = BOOK_PAGES[page];
+  if (!entry) return null;
 
-    if (side === "right") {
-      if (dx < 0 || vx < -400) flipNext();
-      else if (dx > 0 || vx > 400) flipPrev();
-    } else {
-      if (dx > 0 || vx > 400) flipPrev();
-      else if (dx < 0 || vx < -400) flipNext();
-    }
-  }
-
-  // CONTENT helpers (smaller text on small screens)
-  const headingClass = "text-lg md:text-xl font-bold text-cyan-100";
-  const bodyClass = "mt-3 leading-relaxed text-cyan-200/70 text-sm md:text-base";
-  const labelClass = "font-semibold text-cyan-100 text-sm md:text-sm";
-
-  function leftPageContent(idx: number) {
-    switch (idx) {
-      case 0:
-        return (
-          <div className="flex flex-col items-center justify-center p-4 md:p-6">
-            <div className="overflow-hidden border rounded-full w-28 h-28 md:w-40 md:h-40 border-cyan-300/18">
-              <Image src="/education/profile.png" alt="Profile" width={480} height={480} style={{ objectFit: "cover" }} />
-            </div>
-            <div className="mt-3 text-base font-semibold text-center md:text-lg text-cyan-100">Kumar Shivraj Bhakat</div>
-            <div className="mt-1 text-xs md:text-sm text-cyan-200/70">Nagpur, India</div>
-          </div>
-        );
-      case 2:
-        return (
-          <div className="p-4 md:p-6">
-            <h3 className={headingClass}>Introduction</h3>
-            <p className={bodyClass}>
-              I am Kumar Shivraj Bhakat, a Computer Science graduate specializing in AI &amp; ML, now working as an AI/ML Engineer.
-              This book contains my educational records and a summary of my academic journey.
-            </p>
-          </div>
-        );
-      case 4:
-        return (
-          <div className="p-4 md:p-6">
-            <h3 className={headingClass}>Chapter 2 — Advancement (12th Grade)</h3>
-            <div className={bodyClass}>
-              <p><span className={labelClass}>School:</span> Shirinbai Neterwala School</p>
-              <p><span className={labelClass}>Board:</span> CBSE</p>
-              <p><span className={labelClass}>Stream:</span> Physics, Chemistry, Mathematics</p>
-              <p><span className={labelClass}>Year of pass out:</span> 2020</p>
-              <p className="mt-2"><span className="font-bold text-cyan-200">Percentage Obtained:</span> <span className="ml-2 text-xl md:text-2xl text-cyan-100">92.2%</span></p>
-            </div>
-
-            <div className="mt-3">
-              <div className="mb-2 text-xs md:text-sm text-cyan-200/60">Marks sheet preview (tap to enlarge)</div>
-              <button
-                onClick={() => setFullImage("/education/12th-marksheet.png")}
-                className="w-full overflow-hidden border rounded-md border-cyan-400/8 bg-black/20"
-                aria-label="Open 12th marksheet"
-                type="button"
-              >
-                {/* make thumbnails use viewport-relative heights so they remain visible on small screens */}
-                <div style={{ height: "min(22vh,160px)", position: "relative" }}>
-                  <Image src="/education/12th-marksheet.png" alt="12th marksheet" fill style={{ objectFit: "contain" }} />
-                </div>
-              </button>
-            </div>
-          </div>
-        );
-      case 6:
-        return (
-          <div className="p-4 md:p-6">
-            <h3 className={headingClass}>Summary</h3>
-            <p className={bodyClass}>
-              Strong academic performance through secondary and higher secondary education, culminating in a B.Tech in CSE with a focus on AI &amp; ML.
-            </p>
-          </div>
-        );
-      default:
-        return <div className="p-4 text-sm md:p-6 text-cyan-200">—</div>;
-    }
-  }
-
-  function rightPageContent(idx: number) {
-    switch (idx) {
-      case 1:
-        return (
-          <div className="p-4 md:p-6">
-            <h3 className={headingClass}>Table of Contents</h3>
-            <ol className="mt-3 space-y-2 text-sm list-decimal list-inside md:text-base text-cyan-200/80">
-              <li>Introduction</li>
-              <li>Foundations — 10th Grade</li>
-              <li>Advancement — 12th Grade</li>
-              <li>Engineering — B.Tech CSE</li>
-              <li>Summary</li>
-            </ol>
-          </div>
-        );
-      case 3:
-        return (
-          <div className="p-4 md:p-6">
-            <h3 className={headingClass}>Chapter 1 — Foundations (10th Grade)</h3>
-            <div className={bodyClass}>
-              <p><span className={labelClass}>School:</span> Shirinbai Neterwala School</p>
-              <p><span className={labelClass}>Board:</span> CBSE</p>
-              <p><span className={labelClass}>Year of pass out:</span> 2018</p>
-              <p className="mt-2"><span className="font-bold text-cyan-200">Percentage Obtained:</span> <span className="ml-2 text-xl md:text-2xl text-cyan-100">84.6%</span></p>
-            </div>
-
-            <div className="mt-3">
-              <div className="mb-2 text-xs md:text-sm text-cyan-200/60">Marks sheet preview (tap to enlarge)</div>
-              <button
-                onClick={() => setFullImage("/education/10th-marksheet.png")}
-                className="w-full overflow-hidden border rounded-md border-cyan-400/8 bg-black/20"
-                aria-label="Open 10th marksheet"
-                type="button"
-              >
-                <div style={{ height: "min(22vh,160px)", position: "relative" }}>
-                  <Image src="/education/10th-marksheet.png" alt="10th marksheet" fill style={{ objectFit: "contain" }} />
-                </div>
-              </button>
-            </div>
-          </div>
-        );
-      case 5:
-        return (
-          <div className="p-4 md:p-6">
-            <h3 className={headingClass}>Chapter 3 — Engineering (B.Tech CSE)</h3>
-            <div className={bodyClass}>
-              <p><span className={labelClass}>University:</span> JAIN (Deemed-to-be University)</p>
-              <p><span className={labelClass}>Degree:</span> B.Tech - Computer Science &amp; Engineering</p>
-              <p><span className={labelClass}>Year of pass out:</span> 2025</p>
-              <p className="mt-2"><span className="font-bold text-cyan-200">CGPA Obtained:</span> <span className="ml-2 text-xl md:text-2xl text-cyan-100">8.20</span></p>
-            </div>
-
-            <div className="mt-3">
-              <div className="mb-2 text-xs md:text-sm text-cyan-200/60">Degree preview (tap to enlarge)</div>
-              <button
-                onClick={() => setFullImage("/education/degree-certificate.png")}
-                className="w-full overflow-hidden border rounded-md border-cyan-400/8 bg-black/20"
-                aria-label="Open degree certificate"
-                type="button"
-              >
-                <div style={{ height: "min(22vh,160px)", position: "relative" }}>
-                  <Image src="/education/degree-certificate.png" alt="degree certificate" fill style={{ objectFit: "contain" }} />
-                </div>
-              </button>
-            </div>
-          </div>
-        );
-      default:
-        return <div className="p-4 text-sm md:p-6 text-cyan-200">—</div>;
-    }
-  }
-
-  const rightIndex = Math.min(leftIndex + 1, PAGES - 1);
+  const gutter = side === "left" ? "right" : "left";
 
   return (
-    <AnimatePresence>
-      <motion.div
-        className="fixed inset-0 z-50 flex items-center justify-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={() => {
-          if (!isFlipping && !fullImage) onClose();
-          else if (fullImage) setFullImage(null);
+    <div className="relative flex flex-col w-full h-full overflow-hidden">
+      {/* paper */}
+      <div
+        className="absolute inset-0"
+        aria-hidden="true"
+        style={{
+          background:
+            "linear-gradient(160deg, rgba(9,22,30,0.96), rgba(3,11,16,0.98))",
         }}
-        style={{ background: "rgba(0,0,0,0.78)", backdropFilter: "blur(6px)" }}
+      />
+      {/* gutter shading — the page curves into the spine */}
+      {side !== "solo" && (
+        <div
+          className="absolute inset-y-0 w-8 pointer-events-none"
+          aria-hidden="true"
+          style={{
+            [gutter]: 0,
+            background: `linear-gradient(to ${side === "left" ? "left" : "right"}, rgba(0,0,0,0.55), rgba(0,0,0,0))`,
+          }}
+        />
+      )}
+
+      <div className="relative flex-1 min-h-0 overflow-y-auto book-page-scroll">
+        <div className="px-5 py-5 md:px-6 md:py-6">{entry.render(ctx)}</div>
+      </div>
+
+      {/* folio */}
+      <div
+        className={`relative flex h-7 shrink-0 items-center px-5 text-[10px] tabular-nums text-cyan-300/30 md:px-6 ${
+          side === "left" ? "justify-start" : "justify-end"
+        }`}
+        aria-hidden="true"
       >
-        <motion.div
-          onClick={(e) => e.stopPropagation()}
-          initial={{ scale: 0.94, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.96, opacity: 0 }}
-          transition={{ duration: 0.22 }}
-          className="relative w-[95%] max-w-3xl rounded-2xl p-4 md:p-6"
-          style={{ maxHeight: "92vh" }}
-        >
-          {/* header */}
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <div className="text-xs text-cyan-200/60">Shivraj's Education</div>
-              <h2 className="text-xl font-bold md:text-2xl text-cyan-100">A Visual Education Book</h2>
-            </div>
+        {page + 1}
+      </div>
+    </div>
+  );
+}
 
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="text-xs md:text-sm text-cyan-200/60">Spread {Math.floor(leftIndex / 2) + 1} of {Math.ceil(PAGES / 2)}</div>
-              <button onClick={flipPrev} disabled={leftIndex <= 0 || isFlipping} className="px-2 py-1 text-xs border rounded-md md:px-3 md:py-1 border-cyan-400/10 text-cyan-100/90 disabled:opacity-40" type="button">← Prev</button>
-              <button onClick={() => { if (!fullImage) onClose(); else setFullImage(null); }} className="px-2 py-1 text-xs border rounded-md md:px-3 md:py-1 border-cyan-400/10 text-cyan-100/90" type="button">{fullImage ? "Close Image" : "Close"}</button>
-              <button onClick={flipNext} disabled={leftIndex + 2 >= PAGES || isFlipping} className="px-2 py-1 text-xs border rounded-md md:px-3 md:py-1 border-cyan-400/10 text-cyan-100/90 disabled:opacity-40" type="button">Next →</button>
-            </div>
-          </div>
+/* -------------------------------------------------------------- flip sheet */
 
-          {/* Book container: responsive width + fixed aspect-ratio */}
-          <div
-            className="relative mx-auto rounded-lg"
+/**
+ * The single sheet that physically moves during a turn.
+ *
+ * The spread underneath has *already* advanced to the destination, so this
+ * sheet only has to carry the outgoing face away and land the incoming one.
+ * That ordering is what removes the end-of-turn content pop: previously the
+ * index changed in a setTimeout tuned to match the animation, and the two
+ * drifted.
+ *
+ *   next: sheet sits on the right half, hinges at the spine, swings to -180.
+ *         front = outgoing right page, back = incoming left page.
+ *   prev: sheet sits on the left half, hinges at the spine, swings to +180.
+ *         front = outgoing left page, back = incoming right page.
+ */
+function FlipSheet({
+  flip,
+  ctx,
+  onDone,
+}: {
+  flip: Flip;
+  ctx: PageContext;
+  onDone: () => void;
+}) {
+  const next = flip.dir === "next";
+  const to = next ? -180 : 180;
+  const mid = to / 2;
+
+  const angle = useMotionValue(0);
+  /** Specular sheen peaks when the sheet is edge-on. */
+  const sheen = useTransform(angle, [0, mid, to], [0, 0.28, 0]);
+  /** Shadow the sheet casts on the page it is uncovering. */
+  const cast = useTransform(angle, [0, mid, to], [0.5, 0.22, 0]);
+
+  const frontPage = next ? flip.from + 1 : flip.from;
+  const backPage = next ? flip.from + 2 : flip.from - 1;
+
+  const face: React.CSSProperties = {
+    position: "absolute",
+    inset: 0,
+    backfaceVisibility: "hidden",
+    WebkitBackfaceVisibility: "hidden",
+    overflow: "hidden",
+  };
+
+  return (
+    <>
+      {/* cast shadow on the half being revealed */}
+      <motion.div
+        className="absolute inset-y-0 z-20 pointer-events-none"
+        aria-hidden="true"
+        style={{
+          [next ? "right" : "left"]: 0,
+          width: "50%",
+          opacity: cast,
+          background: `linear-gradient(to ${next ? "left" : "right"}, rgba(0,0,0,0.85), rgba(0,0,0,0) 62%)`,
+        }}
+      />
+
+      <motion.div
+        className="absolute inset-y-0 z-30"
+        aria-hidden="true"
+        // Duplicated content must not be reachable by pointer or Tab.
+        inert
+        initial={{ rotateY: 0 }}
+        animate={{ rotateY: to }}
+        transition={{ duration: FLIP_MS / 1000, ease: EASE }}
+        onUpdate={(latest) => {
+          const r = latest.rotateY;
+          angle.set(typeof r === "number" ? r : parseFloat(String(r)) || 0);
+        }}
+        onAnimationComplete={onDone}
+        style={{
+          width: "50%",
+          [next ? "left" : "right"]: "50%",
+          transformOrigin: next ? "left center" : "right center",
+          transformStyle: "preserve-3d",
+          pointerEvents: "none",
+          filter: "drop-shadow(0 24px 48px rgba(0,0,0,0.6))",
+        }}
+      >
+        {/* FRONT — the page being lifted */}
+        <div style={face}>
+          <PageFace
+            page={frontPage}
+            side={next ? "right" : "left"}
+            ctx={ctx}
+          />
+          <motion.div
+            className="absolute inset-0 pointer-events-none"
             style={{
-              width: "min(92vw, 760px)",
-              aspectRatio: "3 / 2",
-              maxHeight: "82vh",
-              background: "linear-gradient(180deg, rgba(2,8,12,0.95), rgba(3,12,18,0.95))",
-              border: "1px solid rgba(6,246,255,0.03)",
-              padding: 12,
-              boxShadow: "0 30px 120px rgba(0,0,0,0.7)",
-              overflow: "hidden",
+              opacity: sheen,
+              background: `linear-gradient(${next ? 100 : 260}deg, rgba(255,255,255,0.5), rgba(255,255,255,0) 55%)`,
             }}
-          >
-            {/* hinge / spine visual (md+) */}
-            <div className="absolute z-40 flex items-center justify-center w-10 -translate-x-1/2 pointer-events-none left-1/2 top-8 bottom-8">
-              <motion.div initial={{ scaleY: 0.9, opacity: 0 }} animate={{ scaleY: coverOpened ? 1 : 0.9, opacity: coverOpened ? 1 : 0 }} transition={{ duration: 0.6, ease: "easeInOut" }} style={{ width: 10, height: "86%", borderRadius: 8, background: "linear-gradient(180deg,#1b2225,#071114)", boxShadow: "inset 0 2px 8px rgba(0,0,0,0.6)", border: "1px solid rgba(6,246,255,0.04)", display: "flex", alignItems: "center", justifyContent: "center" }} className="relative hidden md:flex" />
-            </div>
+          />
+        </div>
 
-            {/* Cover peel (hidden on very small screens) */}
-            <motion.div className="absolute inset-0 z-30 flex" initial={{ opacity: 1 }} animate={{ opacity: coverOpened ? 0 : 1 }} transition={{ duration: 0.18 }} style={{ pointerEvents: "none" }}>
-              <motion.div className="hidden w-1/2 h-full rounded-l-md md:block" initial={{ rotateY: 0 }} animate={{ rotateY: coverOpened ? -170 : 0, opacity: coverOpened ? 0 : 1 }} transition={{ duration: 0.72, ease: "easeInOut" }} style={{ transformStyle: "preserve-3d", backfaceVisibility: "hidden", background: "linear-gradient(180deg,#071018,#021216)", borderRight: "1px solid rgba(6,246,255,0.03)", boxShadow: "0 22px 80px rgba(0,0,0,0.7)" }} />
-              <motion.div className="w-1/2 h-full rounded-r-md" initial={{ opacity: 1 }} animate={{ opacity: coverOpened ? 0 : 1 }} transition={{ duration: 0.5 }} style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.06), rgba(0,0,0,0.02))", borderLeft: "1px solid rgba(6,246,255,0.02)" }} />
-            </motion.div>
+        {/* BACK — the page being laid down (pre-mirrored) */}
+        <div style={{ ...face, transform: "rotateY(180deg)" }}>
+          <PageFace
+            page={backPage}
+            side={next ? "left" : "right"}
+            ctx={ctx}
+          />
+          <motion.div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              opacity: sheen,
+              background: `linear-gradient(${next ? 260 : 100}deg, rgba(255,255,255,0.45), rgba(255,255,255,0) 55%)`,
+            }}
+          />
+        </div>
+      </motion.div>
+    </>
+  );
+}
 
-            {/* Inner spreads */}
-            <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: coverOpened ? 1 : 0, scale: coverOpened ? 1 : 0.98 }} transition={{ delay: coverOpened ? 0.12 : 0, duration: 0.32 }} className="relative h-full">
-              <div className="flex flex-row items-stretch h-full gap-3">
-                {/* LEFT PAGE */}
-                <div className="relative flex-shrink-0 w-1/2 min-w-0 overflow-auto border rounded-md border-cyan-400/6 bg-black/20" style={{ transformStyle: "preserve-3d" }}>
-                  <div className="p-3 md:p-4">{leftPageContent(leftIndex)}</div>
+/* ------------------------------------------------------------------- modal */
 
-                  <motion.div drag="x" dragConstraints={{ left: -80, right: 80 }} onDragEnd={(e, info) => handleDragEnd(info, "left")} className="absolute inset-y-0 left-0 w-1/2 bg-transparent" />
-                </div>
+export default function EducationBookModal({ onClose }: Props) {
+  const reduceMotion = useReducedMotion() ?? false;
+  const isSpread = useIsSpread();
+  const step = isSpread ? 2 : 1;
 
-                {/* SPINE for md */}
-                <div className="relative items-center justify-center hidden w-10 rounded-md md:flex" style={{ borderLeft: "1px solid rgba(6,246,255,0.03)", borderRight: "1px solid rgba(6,246,255,0.03)", background: "linear-gradient(90deg, rgba(0,0,0,0.04), rgba(6,246,255,0.01))" }}>
-                  <div style={{ width: 1.5, height: "64%", background: "rgba(6,246,255,0.02)", borderRadius: 2 }} />
-                </div>
+  const [rawIndex, setRawIndex] = useState(0);
+  const [flip, setFlip] = useState<Flip | null>(null);
+  const [viewer, setViewer] = useState<{ src: string; alt: string } | null>(
+    null
+  );
 
-                {/* RIGHT PAGE */}
-                <div className="relative flex-shrink-0 w-1/2 min-w-0 overflow-auto border rounded-md border-cyan-400/6 bg-black/20" style={{ perspective: 1200 }}>
-                  <div className="p-3 md:p-4">{rightPageContent(rightIndex)}</div>
+  const dialogRef = useRef<HTMLDivElement | null>(null);
 
-                  {/* overlay flip: pointer-events enabled only on md+ to avoid overlay/white artifact on small screens */}
-                  <motion.div className="absolute inset-0 overflow-hidden origin-left rounded-md pointer-events-none md:pointer-events-auto" style={{ transformStyle: "preserve-3d", zIndex: 20 }} key={`${leftIndex}-${flipDirection || "idle"}`} initial={{ rotateY: flipDirection === "prev" ? -180 : 0 }} animate={{ rotateY: flipDirection === "next" ? -180 : (flipDirection === "prev" ? 0 : 0) }} transition={{ duration: 0.56, ease: [0.2, 0.85, 0.25, 1] }} onClick={() => { if (!isFlipping && leftIndex + 2 < PAGES) flipNext(); }} drag="x" dragConstraints={{ left: -120, right: 120 }} onDragEnd={(e, info) => handleDragEnd(info, "right")}>
-                    {/* FRONT FACE (only shown on md to avoid small-screen conflict) */}
-                    <div className="absolute inset-0 hidden p-4 md:block" style={{ backfaceVisibility: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.6)", background: "linear-gradient(180deg,#071018,#061014)" }}>
-                      <div className="relative w-full h-full">
-                        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "linear-gradient(120deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 25%, rgba(0,0,0,0.06) 60%)" }} />
-                        {rightPageContent(rightIndex)}
-                        <div style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: 12, pointerEvents: "none", background: "linear-gradient(90deg, rgba(0,0,0,0.18), rgba(0,0,0,0))" }} />
-                      </div>
-                    </div>
+  const lastIndex = Math.max(0, PAGE_COUNT - step);
 
-                    {/* BACK FACE */}
-                    <div className="absolute inset-0 hidden p-4 md:block" style={{ transform: "rotateY(180deg)", backfaceVisibility: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.65)", background: "linear-gradient(180deg,#071018,#061014)" }}>
-                      <div className="relative w-full h-full">
-                        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "linear-gradient(60deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.00) 25%, rgba(0,0,0,0.06) 60%)" }} />
-                        <div style={{ width: "100%", height: "100%" }}>{rightPageContent(Math.min(rightIndex + 1, PAGES - 1))}</div>
-                        <div style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: 12, pointerEvents: "none", background: "linear-gradient(270deg, rgba(0,0,0,0.28), rgba(0,0,0,0))" }} />
-                      </div>
-                    </div>
-                  </motion.div>
+  /**
+   * Crossing the md breakpoint changes the step from 2 to 1 (or back), which
+   * can leave the stored index off a valid boundary. Derived rather than
+   * synced in an effect so there is no cascading re-render, and no frame where
+   * the book renders a spread starting on an odd page.
+   */
+  const index = Math.min(lastIndex, Math.floor(rawIndex / step) * step);
 
-                  {/* clickable overlay always active but prevents focus issues */}
-                  <button
-                    onClick={(e) => { if (!isFlipping && leftIndex + 2 < PAGES) flipNext(); (e.currentTarget as HTMLButtonElement).blur(); }}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onTouchStart={(e) => e.preventDefault()}
-                    type="button"
-                    tabIndex={-1}
-                    aria-label="Next page"
-                    className="absolute inset-y-0 right-0 w-1/2 bg-transparent focus:outline-none"
-                    style={{ cursor: leftIndex + 2 >= PAGES ? "not-allowed" : "pointer", outline: "none", border: "none" }}
-                  />
-                </div>
-              </div>
-            </motion.div>
+  const rightPage = Math.min(index + 1, PAGE_COUNT - 1);
+  const spreadNo = Math.floor(index / step) + 1;
+  const spreadTotal = Math.ceil(PAGE_COUNT / step);
+
+  const canPrev = index > 0;
+  const canNext = index + step < PAGE_COUNT;
+
+  const go = useCallback(
+    (dir: "next" | "prev") => {
+      if (flip) return;
+      const target = dir === "next" ? index + step : index - step;
+      if (target < 0 || target > lastIndex) return;
+      // Advance the spread first, then hand the outgoing pages to the sheet.
+      if (!reduceMotion) setFlip({ dir, from: index });
+      setRawIndex(target);
+    },
+    [flip, index, step, lastIndex, reduceMotion]
+  );
+
+  const goToPage = useCallback(
+    (page: number) => {
+      if (flip) return;
+      const target = Math.min(lastIndex, Math.floor(page / step) * step);
+      if (target === index) return;
+      if (!reduceMotion) {
+        setFlip({ dir: target > index ? "next" : "prev", from: index });
+      }
+      setRawIndex(target);
+    },
+    [flip, index, step, lastIndex, reduceMotion]
+  );
+
+  const ctx: PageContext = useMemo(
+    () => ({
+      onOpenImage: (src, alt) => setViewer({ src, alt }),
+      onGoToPage: goToPage,
+    }),
+    [goToPage]
+  );
+
+  /* ----------------------------------------------------------- keyboard */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        if (viewer) setViewer(null);
+        else onClose();
+        return;
+      }
+      if (viewer) return;
+      if (e.key === "ArrowRight" || e.key === "PageDown") {
+        e.preventDefault();
+        go("next");
+      }
+      if (e.key === "ArrowLeft" || e.key === "PageUp") {
+        e.preventDefault();
+        go("prev");
+      }
+      if (e.key === "Home") {
+        e.preventDefault();
+        goToPage(0);
+      }
+      if (e.key === "End") {
+        e.preventDefault();
+        goToPage(PAGE_COUNT - 1);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [go, goToPage, viewer, onClose]);
+
+  /* ------------------------------------------- scroll lock + focus trap */
+  useEffect(() => {
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const el = dialogRef.current;
+    el?.querySelector<HTMLElement>("[data-autofocus]")?.focus();
+
+    const trap = (e: KeyboardEvent) => {
+      if (e.key !== "Tab" || !el) return;
+      const nodes = Array.from(
+        el.querySelectorAll<HTMLElement>(FOCUSABLE)
+      ).filter((n) => n.offsetParent !== null);
+      if (!nodes.length) return;
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    el?.addEventListener("keydown", trap);
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      el?.removeEventListener("keydown", trap);
+      previouslyFocused?.focus?.();
+    };
+  }, []);
+
+  /* -------------------------------------------------------------- swipe */
+  const onPanEnd = (_e: unknown, info: PanInfo) => {
+    if (viewer || flip) return;
+    const { offset, velocity } = info;
+    // Ignore mostly-vertical drags so page scrolling still works.
+    if (Math.abs(offset.x) < Math.abs(offset.y) * 1.4) return;
+    if (Math.abs(offset.x) < 55 && Math.abs(velocity.x) < 420) return;
+    go(offset.x < 0 ? "next" : "prev");
+  };
+
+  /* ------------------------------------------------------------- render */
+
+  const openTransition = reduceMotion
+    ? { duration: 0.18 }
+    : { duration: 0.62, ease: EASE };
+
+  /* Single-page (small screen) turn: a slide, because one page has no spine to
+     hinge on — a full-width rotate about the outer edge just swings offscreen. */
+  const slideDir = flip?.dir === "prev" ? -1 : 1;
+  const shift = reduceMotion ? 0 : 70;
+  const slideVariants = {
+    enter: (d: number) => ({ opacity: 0, x: d > 0 ? shift : -shift }),
+    center: { opacity: 1, x: 0 },
+    exit: (d: number) => ({ opacity: 0, x: d > 0 ? -shift : shift }),
+  };
+
+  const announcement = isSpread
+    ? `Pages ${index + 1} and ${rightPage + 1} of ${PAGE_COUNT}: ${BOOK_PAGES[index]?.label}, ${BOOK_PAGES[rightPage]?.label}`
+    : `Page ${index + 1} of ${PAGE_COUNT}: ${BOOK_PAGES[index]?.label}`;
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.24 }}
+      style={{ background: "rgba(1,6,9,0.86)", backdropFilter: "blur(8px)" }}
+      onClick={onClose}
+    >
+      <motion.div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edu-book-title"
+        onClick={(e) => e.stopPropagation()}
+        initial={{ opacity: 0, y: 14, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 10, scale: 0.98 }}
+        transition={{ duration: 0.28, ease: EASE }}
+        className="flex flex-col w-full max-w-5xl"
+      >
+        {/* ------------------------------------------------------ header */}
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="min-w-0">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-300/50">
+              Shivraj&rsquo;s Education
+            </p>
+            <h2
+              id="edu-book-title"
+              className="text-lg font-bold tracking-tight truncate md:text-xl text-cyan-100"
+            >
+              A Visual Education Book
+            </h2>
           </div>
 
-          {/* small page indicator */}
-          <div className="mt-3 text-xs text-center md:text-sm text-cyan-200/60">Left page: {leftIndex + 1} — Right page: {rightIndex + 1}</div>
+          <button
+            type="button"
+            onClick={onClose}
+            data-autofocus
+            aria-label="Close the education book"
+            className="grid transition-colors border rounded-full shrink-0 h-9 w-9 place-items-center border-cyan-400/20 text-cyan-100/70 hover:border-cyan-300/50 hover:text-cyan-100"
+          >
+            <X size={16} aria-hidden="true" />
+          </button>
+        </div>
+
+        {/* -------------------------------------------------------- book */}
+        <motion.div
+          onPanEnd={onPanEnd}
+          className="relative mx-auto"
+          style={{
+            // Cap width so height (width / ratio) also fits the viewport.
+            width: isSpread
+              ? "min(94vw, 880px, 105vh)"
+              : "min(92vw, 420px, 52vh)",
+            aspectRatio: isSpread ? "3 / 2" : "3 / 4",
+            // Flex items get `min-height: auto` and are shrinkable by default;
+            // pin both so the stage box is decided by the two lines above and
+            // nothing else.
+            flexShrink: 0,
+            perspective: 2000,
+            perspectiveOrigin: "center center",
+            touchAction: "pan-y",
+          }}
+        >
+          {/* board / edge stack behind the pages */}
+          <div
+            className="absolute rounded-lg -inset-2 md:-inset-3"
+            aria-hidden="true"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(10,26,34,0.9), rgba(2,8,12,0.95))",
+              border: "1px solid rgba(6,246,255,0.10)",
+              boxShadow:
+                "0 40px 120px rgba(0,0,0,0.75), inset 0 1px 0 rgba(6,246,255,0.06)",
+            }}
+          />
+
+          {isSpread ? (
+            /* ------------------------------- two-page spread (md and up) */
+            <div
+              className="relative flex w-full h-full overflow-hidden rounded"
+              style={{ transformStyle: "preserve-3d" }}
+            >
+              {/* The two halves swing shut/open around the spine, which reads
+                  as a book opening. The old cover-peel faded out in 180ms
+                  while rotating for 720ms, so it vanished before it moved. */}
+              <motion.div
+                className="w-1/2 h-full"
+                initial={reduceMotion ? { opacity: 0 } : { rotateY: 62 }}
+                animate={reduceMotion ? { opacity: 1 } : { rotateY: 0 }}
+                transition={openTransition}
+                style={{
+                  transformOrigin: "right center",
+                  transformStyle: "preserve-3d",
+                }}
+              >
+                <PageFace page={index} side="left" ctx={ctx} />
+              </motion.div>
+
+              <motion.div
+                className="w-1/2 h-full"
+                initial={reduceMotion ? { opacity: 0 } : { rotateY: -62 }}
+                animate={reduceMotion ? { opacity: 1 } : { rotateY: 0 }}
+                transition={openTransition}
+                style={{
+                  transformOrigin: "left center",
+                  transformStyle: "preserve-3d",
+                }}
+              >
+                <PageFace page={rightPage} side="right" ctx={ctx} />
+              </motion.div>
+
+              {/* spine */}
+              <div
+                className="absolute inset-y-0 z-20 -translate-x-1/2 pointer-events-none left-1/2 w-7"
+                aria-hidden="true"
+                style={{
+                  background:
+                    "linear-gradient(90deg, rgba(0,0,0,0.6), rgba(0,0,0,0.15) 35%, rgba(6,246,255,0.05) 50%, rgba(0,0,0,0.15) 65%, rgba(0,0,0,0.6))",
+                }}
+              />
+
+              {flip && (
+                <FlipSheet
+                  flip={flip}
+                  ctx={ctx}
+                  onDone={() => setFlip(null)}
+                />
+              )}
+
+              {/* edge affordances — the real controls are the buttons below */}
+              <div
+                className="absolute inset-y-0 left-0 z-10 w-[14%] cursor-w-resize"
+                aria-hidden="true"
+                onClick={() => canPrev && go("prev")}
+              />
+              <div
+                className="absolute inset-y-0 right-0 z-10 w-[14%] cursor-e-resize"
+                aria-hidden="true"
+                onClick={() => canNext && go("next")}
+              />
+            </div>
+          ) : (
+            /* ------------------------------- single page (small screens) */
+            <div className="relative w-full h-full overflow-hidden rounded">
+              {/*
+                Direction comes through AnimatePresence's `custom`, not from
+                reading `flip` inside the child: AnimatePresence renders the
+                exiting child with the props it had *before* the turn, when
+                `flip` was still null, so a "prev" turn would have slid the old
+                page out the wrong way.
+              */}
+              <AnimatePresence
+                initial={false}
+                mode="popLayout"
+                custom={slideDir}
+              >
+                <motion.div
+                  key={index}
+                  className="absolute inset-0"
+                  custom={slideDir}
+                  variants={slideVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{ duration: 0.34, ease: EASE }}
+                  onAnimationComplete={() => setFlip(null)}
+                >
+                  <PageFace page={index} side="solo" ctx={ctx} />
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          )}
         </motion.div>
 
-        {/* Full-screen image viewer (constrained) */}
-        <AnimatePresence>
-          {fullImage && (
-            <motion.div className="fixed inset-0 z-[100] flex items-center justify-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setFullImage(null)} style={{ background: "rgba(0,0,0,0.9)" }}>
-              <motion.div onClick={(e) => e.stopPropagation()} initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.98, opacity: 0 }} className="relative w-[92%] max-w-3xl rounded-lg overflow-hidden" style={{ maxHeight: "90vh" }}>
-                <div className="absolute z-20 top-3 right-3">
-                  <button onClick={() => setFullImage(null)} className="px-3 py-1 border rounded-md border-cyan-400/20 text-cyan-100/90 bg-black/30" type="button">Close</button>
-                </div>
+        {/* ------------------------------------------------------ footer */}
+        <div className="flex items-center justify-center gap-3 mt-5 md:gap-4">
+          <button
+            type="button"
+            onClick={() => go("prev")}
+            disabled={!canPrev || !!flip}
+            aria-label="Previous page"
+            className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/20 px-3 py-1.5 text-xs text-cyan-100/85 transition-colors hover:border-cyan-300/50 disabled:cursor-not-allowed disabled:opacity-30 md:text-sm"
+          >
+            <ChevronLeft size={14} aria-hidden="true" /> Prev
+          </button>
 
-                <div className="relative flex items-center justify-center w-full h-full p-4 bg-black/90" style={{ minHeight: "56vh" }}>
-                  <Image src={fullImage} alt="document" fill style={{ objectFit: "contain" }} />
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+          {/* spread dots */}
+          <div className="flex items-center gap-1.5" role="presentation">
+            {Array.from({ length: spreadTotal }, (_, i) => {
+              const active = i === spreadNo - 1;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => goToPage(i * step)}
+                  aria-label={`Go to ${isSpread ? "spread" : "page"} ${i + 1}`}
+                  aria-current={active ? "true" : undefined}
+                  className="p-1 group"
+                >
+                  <span
+                    className={`block h-1.5 rounded-full transition-all ${
+                      active
+                        ? "w-5 bg-cyan-300/80"
+                        : "w-1.5 bg-cyan-300/25 group-hover:bg-cyan-300/50"
+                    }`}
+                  />
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => go("next")}
+            disabled={!canNext || !!flip}
+            aria-label="Next page"
+            className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/20 px-3 py-1.5 text-xs text-cyan-100/85 transition-colors hover:border-cyan-300/50 disabled:cursor-not-allowed disabled:opacity-30 md:text-sm"
+          >
+            Next <ChevronRight size={14} aria-hidden="true" />
+          </button>
+        </div>
+
+        <p className="mt-2 text-center text-[11px] text-cyan-200/35">
+          {isSpread
+            ? "Arrow keys, page edges, or swipe to turn"
+            : "Swipe or use the arrows to turn"}
+        </p>
+
+        <div className="sr-only" aria-live="polite" aria-atomic="true">
+          {announcement}
+        </div>
       </motion.div>
-    </AnimatePresence>
+
+      {/* ------------------------------------------------ document viewer */}
+      <AnimatePresence>
+        {viewer && (
+          <motion.div
+            className="fixed inset-0 z-100 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setViewer(null);
+            }}
+            style={{ background: "rgba(0,0,0,0.94)" }}
+            role="dialog"
+            aria-modal="true"
+            aria-label={viewer.alt}
+          >
+            <motion.div
+              onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.96, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.98, opacity: 0 }}
+              transition={{ duration: 0.22, ease: EASE }}
+              className="relative w-full max-w-4xl"
+              style={{ height: "min(86vh, 900px)" }}
+            >
+              <Image
+                src={viewer.src}
+                alt={viewer.alt}
+                fill
+                sizes="(max-width: 768px) 92vw, min(90vw, 896px)"
+                style={{ objectFit: "contain" }}
+                priority
+              />
+              <button
+                type="button"
+                onClick={() => setViewer(null)}
+                aria-label="Close document"
+                className="absolute grid rounded-full h-9 w-9 place-items-center border border-cyan-400/25 bg-black/70 text-cyan-100/85 transition-colors -top-1 right-0 hover:border-cyan-300/60 md:-top-2"
+              >
+                <X size={16} aria-hidden="true" />
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

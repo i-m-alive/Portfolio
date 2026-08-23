@@ -773,7 +773,7 @@ export default function ProfessionalAIPage() {
       role: "Software Engineer",
       type: "Full-time",
       period: "Oct 2025 - Present",
-      location: "Noida, Uttar Pradesh, India · On-site",
+      location: "Bengaluru, Karnataka, India · On-site",
       summary: "Promoted to full-time Software Engineer after a successful 7-month internship. Building AI-driven solutions and agentic AI projects to deliver production impact.",
       skills: ["AIML", "Artificial Intelligence (AI)", "Data Science"],
       category: "AI/ML",

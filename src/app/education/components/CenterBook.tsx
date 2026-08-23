@@ -2,33 +2,166 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+import { BookOpen } from "lucide-react";
 
+/**
+ * The closed book that opens the education modal.
+ *
+ * Built as an actual 3D object — cover, spine, fore-edge page stack — so the
+ * hover state can crack the cover open and telegraph what clicking does. The
+ * previous version put an infinite `animate` keyframe loop and a `whileHover`
+ * scale on the same element (framer resolves that by letting the loop win, so
+ * hover barely registered) and rotated on Y with no ancestor perspective, which
+ * renders as a flat horizontal squash rather than a rotation.
+ */
 export default function CenterBook({ onOpen }: { onOpen: () => void }) {
-  return (
-    <motion.button
-      onClick={onOpen}
-      initial={{ y: 10, opacity: 0 }}
-      animate={{ y: [10, -8, 10], opacity: 1, rotateY: [0, 5, 0] }}
-      transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-      whileHover={{ scale: 1.03 }}
-      className="relative w-[320px] sm:w-[420px] md:w-[520px] h-[420px] sm:h-[520px] md:h-[680px] rounded-3xl p-6 flex items-center justify-center cursor-pointer select-none"
-      style={{
-        backdropFilter: "blur(8px)",
-        background: "linear-gradient(180deg, rgba(0,0,0,0.18), rgba(3,12,18,0.35))",
-        border: "1px solid rgba(6,246,255,0.06)",
-        boxShadow: "0 30px 90px rgba(0,0,0,0.8), inset 0 0 40px rgba(6,246,255,0.02)",
-      }}
-      aria-label="Open Shivraj's Education"
-    >
-      <div className="absolute inset-0 pointer-events-none rounded-3xl" style={{ background: "radial-gradient(circle at 50% 35%, rgba(6,246,255,0.06), rgba(6,246,255,0.01) 20%, transparent 40%)", filter: "blur(18px)", zIndex: 0 }} />
+  const reduceMotion = useReducedMotion() ?? false;
 
-      <div className="relative w-[74%] h-[86%] rounded-xl flex flex-col items-center justify-center text-center p-6 z-10" style={{ transformStyle: "preserve-3d", background: "linear-gradient(180deg, rgba(2,30,40,0.9), rgba(0,0,0,0.6))", border: "1px solid rgba(6,246,255,0.08)", boxShadow: "0 18px 60px rgba(0,0,0,0.6)" }}>
-        <div className="text-2xl font-bold tracking-wide text-cyan-100 md:text-3xl">Shivraj's</div>
-        <div className="mt-1 text-3xl font-extrabold text-cyan-200/70 md:text-4xl">Education</div>
-        <div className="px-6 mt-6 text-sm md:text-base text-cyan-200/60">Click to open — a visual book containing education chapters, marksheets and degree.</div>
-        <div className="px-4 py-2 mt-6 text-xs border rounded-full md:text-sm" style={{ borderColor: "rgba(6,246,255,0.08)", color: "rgba(6,246,255,0.9)", background: "linear-gradient(90deg, rgba(6,246,255,0.02), rgba(0,0,0,0.02))" }}>Open Book</div>
-      </div>
-    </motion.button>
+  return (
+    <div
+      className="relative"
+      style={{ perspective: 1400, perspectiveOrigin: "50% 45%" }}
+    >
+      {/* ground shadow */}
+      <div
+        aria-hidden="true"
+        className="absolute -bottom-6 left-1/2 h-10 w-[70%] -translate-x-1/2 rounded-[50%]"
+        style={{
+          background:
+            "radial-gradient(ellipse at center, rgba(0,0,0,0.75), rgba(0,0,0,0) 70%)",
+          filter: "blur(8px)",
+        }}
+      />
+
+      {/* idle float lives on its own wrapper so it cannot fight the hover state */}
+      <motion.div
+        animate={reduceMotion ? undefined : { y: [0, -10, 0] }}
+        transition={
+          reduceMotion
+            ? undefined
+            : { duration: 7, repeat: Infinity, ease: "easeInOut" }
+        }
+      >
+        <motion.button
+          type="button"
+          onClick={onOpen}
+          aria-label="Open Shivraj's education book"
+          initial={
+            reduceMotion ? { opacity: 0 } : { opacity: 0, rotateY: -22, y: 18 }
+          }
+          animate={
+            reduceMotion ? { opacity: 1 } : { opacity: 1, rotateY: -14, y: 0 }
+          }
+          transition={{ duration: 0.8, ease: [0.32, 0.72, 0.28, 1] }}
+          whileHover={reduceMotion ? undefined : { rotateY: -6, scale: 1.02 }}
+          whileTap={reduceMotion ? undefined : { scale: 0.985 }}
+          className="relative block h-[420px] w-[300px] cursor-pointer select-none rounded-r-md sm:h-[500px] sm:w-[360px] md:h-[540px] md:w-[400px]"
+          style={{ transformStyle: "preserve-3d" }}
+        >
+          {/* aura */}
+          <div
+            aria-hidden="true"
+            className="absolute pointer-events-none -inset-10"
+            style={{
+              background:
+                "radial-gradient(circle at 45% 40%, rgba(6,246,255,0.12), rgba(6,246,255,0) 62%)",
+              filter: "blur(24px)",
+            }}
+          />
+
+          {/* first page, revealed as the cover cracks open on hover */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-y-2 left-4 right-1 rounded-r-md"
+            style={{
+              background:
+                "linear-gradient(120deg, rgba(16,38,48,0.98), rgba(5,16,22,1))",
+              border: "1px solid rgba(6,246,255,0.10)",
+              transform: "translateZ(-6px)",
+            }}
+          />
+
+          {/* fore-edge: the stack of pages */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-y-3 right-0 w-2.5 rounded-r-sm"
+            style={{
+              background:
+                "repeating-linear-gradient(180deg, rgba(190,225,235,0.30) 0 1px, rgba(6,20,28,0.85) 1px 3px)",
+              boxShadow: "inset -2px 0 6px rgba(0,0,0,0.7)",
+            }}
+          />
+
+          {/* front cover — hinged at the spine */}
+          <motion.div
+            className="absolute inset-0 overflow-hidden rounded-r-md"
+            whileHover={reduceMotion ? undefined : { rotateY: -17 }}
+            transition={{ duration: 0.6, ease: [0.32, 0.72, 0.28, 1] }}
+            style={{
+              transformOrigin: "left center",
+              transformStyle: "preserve-3d",
+              background:
+                "linear-gradient(135deg, #0b2530 0%, #061620 45%, #030d13 100%)",
+              border: "1px solid rgba(6,246,255,0.14)",
+              boxShadow:
+                "0 40px 90px rgba(0,0,0,0.85), inset 0 1px 0 rgba(6,246,255,0.10)",
+            }}
+          >
+            {/* spine */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-y-0 left-0 w-7"
+              style={{
+                background:
+                  "linear-gradient(90deg, rgba(0,0,0,0.85), rgba(6,246,255,0.06) 55%, rgba(0,0,0,0.45))",
+                borderRight: "1px solid rgba(6,246,255,0.10)",
+              }}
+            />
+
+            {/* embossed border */}
+            <div
+              aria-hidden="true"
+              className="absolute rounded-sm inset-x-10 inset-y-8"
+              style={{ border: "1px solid rgba(6,246,255,0.13)" }}
+            />
+
+            {/* cover type */}
+            <div className="relative flex flex-col items-center justify-center h-full px-12 text-center">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.34em] text-cyan-300/55">
+                Shivraj&rsquo;s
+              </p>
+              <h2 className="mt-3 text-3xl font-extrabold leading-none tracking-tight md:text-4xl text-cyan-100">
+                Education
+              </h2>
+
+              <div
+                aria-hidden="true"
+                className="w-12 h-px mt-5 bg-cyan-300/30"
+              />
+
+              <p className="mt-5 text-[12px] leading-relaxed text-cyan-200/50">
+                Chapters, marksheets and the degree — bound as one volume.
+              </p>
+
+              <span className="mt-8 inline-flex items-center gap-2 rounded-full border border-cyan-400/25 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-cyan-200/85">
+                <BookOpen size={12} aria-hidden="true" />
+                Open the book
+              </span>
+            </div>
+
+            {/* sheen */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background:
+                  "linear-gradient(115deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0) 38%)",
+              }}
+            />
+          </motion.div>
+        </motion.button>
+      </motion.div>
+    </div>
   );
 }
