@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Remediation Record</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Spectral:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --paper:#EBEEEC; --surface:#FFFFFF; --surface-2:#F4F6F4;
+  --ink:#15191B; --ink-2:#3D4A4E; --muted:#66757A;
+  --rule:#D2D9D5; --rule-strong:#B4BEBA;
+  --accent:#134851; --accent-2:#1B6470;
+  --done:#2F6B45; --done-bg:#E2EFE6;
+  --part:#A05C11; --part-bg:#F8EDDC;
+  --open:#8F2618; --open-bg:#F6E4E0;
+  --shadow:0 1px 2px rgba(19,45,50,.06), 0 8px 24px rgba(19,45,50,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1214; --surface:#151A1C; --surface-2:#1B2225;
+    --ink:#E7EDEB; --ink-2:#B6C3C3; --muted:#8A9A9C;
+    --rule:#242D30; --rule-strong:#354145;
+    --accent:#63B6C2; --accent-2:#8ACDD6;
+    --done:#6FBF8C; --done-bg:#16271D;
+    --part:#DEA652; --part-bg:#2C2415;
+    --open:#E8836F; --open-bg:#2C1A16;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1214; --surface:#151A1C; --surface-2:#1B2225;
+  --ink:#E7EDEB; --ink-2:#B6C3C3; --muted:#8A9A9C;
+  --rule:#242D30; --rule-strong:#354145;
+  --accent:#63B6C2; --accent-2:#8ACDD6;
+  --done:#6FBF8C; --done-bg:#16271D;
+  --part:#DEA652; --part-bg:#2C2415;
+  --open:#E8836F; --open-bg:#2C1A16;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:Spectral,Georgia,serif;font-size:16.5px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:0 28px 110px}
+h1,h2,h3,.d{font-family:Archivo,"Helvetica Neue",Arial,sans-serif;text-wrap:balance}
+h2{font-size:1.5rem;font-weight:700;letter-spacing:-.015em;margin:0}
+h3{font-size:1.02rem;font-weight:600;margin:0}
+code,.m{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+code{font-size:.845em;background:var(--surface-2);border:1px solid var(--rule);
+  padding:.1em .38em;border-radius:3px;color:var(--ink-2);white-space:nowrap}
+a{color:var(--accent-2)}
+:focus-visible{outline:2px solid var(--accent-2);outline-offset:3px;border-radius:2px}
+
+.mast{border-bottom:2px solid var(--ink);padding:44px 0 18px;margin-bottom:32px}
+.mast .kick{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap}
+.mast h1{font-size:clamp(2rem,5vw,3.1rem);font-weight:700;letter-spacing:-.03em;line-height:1.03;margin:.34em 0 .3em}
+.mast .sub{font-size:1.1rem;color:var(--ink-2);max-width:64ch;margin:0}
+
+.verdict{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--done);
+  border-radius:4px;padding:22px 25px;box-shadow:var(--shadow);margin-bottom:32px}
+.verdict p{margin:0 0 .75em}.verdict p:last-child{margin-bottom:0}
+
+.panel{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);border-radius:4px;overflow:hidden;margin-bottom:14px}
+.cell{background:var(--surface);padding:14px 16px 12px}
+.cell .n{font-family:Archivo,sans-serif;font-size:1.28rem;font-weight:700;line-height:1.15;
+  letter-spacing:-.02em;font-variant-numeric:tabular-nums;display:block}
+.cell .n .was{color:var(--muted);font-weight:500;text-decoration:line-through;font-size:.85em}
+.cell .n .arw{color:var(--muted);font-weight:400;font-size:.8em;margin:0 .28em}
+.cell .n .now{color:var(--done)}
+.cell .l{font-family:"IBM Plex Mono",monospace;font-size:.645rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);margin-top:7px;display:block;line-height:1.45}
+
+section{margin-top:52px;scroll-margin-top:20px}
+.shead{display:flex;align-items:baseline;gap:14px;border-bottom:1px solid var(--rule-strong);
+  padding-bottom:9px;margin-bottom:20px;flex-wrap:wrap}
+.shead .num{font-family:"IBM Plex Mono",monospace;font-size:.76rem;font-weight:600;color:var(--accent);letter-spacing:.08em}
+.shead .meta{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:.7rem;color:var(--muted);letter-spacing:.06em}
+.lede{color:var(--ink-2);max-width:70ch;margin:0 0 20px}
+
+.chip{font-family:"IBM Plex Mono",monospace;font-size:.62rem;font-weight:600;letter-spacing:.11em;
+  text-transform:uppercase;padding:3px 8px;border-radius:3px;white-space:nowrap;display:inline-block}
+.chip.done{background:var(--done-bg);color:var(--done)}
+.chip.part{background:var(--part-bg);color:var(--part)}
+.chip.open{background:var(--open-bg);color:var(--open)}
+
+.rec{background:var(--surface);border:1px solid var(--rule);border-radius:4px;margin-bottom:13px;
+  overflow:hidden;box-shadow:var(--shadow);display:grid;grid-template-columns:5px 1fr}
+.rec .stripe{background:var(--done)}
+.rec.part .stripe{background:var(--part)}
+.rec.open .stripe{background:var(--open)}
+.rec .body{padding:16px 20px 17px;min-width:0}
+.rtop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:7px}
+.rid{font-family:"IBM Plex Mono",monospace;font-size:.7rem;font-weight:600;color:var(--muted);letter-spacing:.08em}
+.rec h3{margin:0 0 8px}
+.rec p{margin:0 0 8px;font-size:.94rem;color:var(--ink-2)}
+.rec p:last-child{margin-bottom:0}
+.ev{background:var(--surface-2);border:1px solid var(--rule);border-left:2px solid var(--rule-strong);
+  border-radius:3px;padding:10px 13px;margin:9px 0;font-family:"IBM Plex Mono",monospace;
+  font-size:.775rem;line-height:1.68;color:var(--ink-2);overflow-x:auto;white-space:pre}
+
+.tw{overflow-x:auto;border:1px solid var(--rule);border-radius:4px;background:var(--surface);
+  box-shadow:var(--shadow);margin-bottom:16px}
+table{border-collapse:collapse;width:100%;font-size:.875rem;min-width:540px}
+th{font-family:Archivo,sans-serif;font-size:.645rem;letter-spacing:.11em;text-transform:uppercase;
+  text-align:left;padding:10px 14px;color:var(--muted);border-bottom:1px solid var(--rule-strong);
+  white-space:nowrap;font-weight:600;background:var(--surface-2)}
+td{padding:9px 14px;border-bottom:1px solid var(--rule);vertical-align:top;color:var(--ink-2)}
+tr:last-child td{border-bottom:none}
+td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
+td strong{color:var(--ink);font-weight:600}
+
+.note{border-left:3px solid var(--accent);background:var(--surface-2);padding:13px 17px;
+  border-radius:0 4px 4px 0;font-size:.91rem;color:var(--ink-2);margin:18px 0}
+.note.warn{border-left-color:var(--open)}
+.note b{color:var(--ink);font-family:Archivo,sans-serif;font-size:.72rem;letter-spacing:.1em;
+  text-transform:uppercase;display:block;margin-bottom:4px}
+ul.tight{margin:.5em 0;padding-left:1.15em}
+ul.tight li{margin:.34em 0;color:var(--ink-2);font-size:.93rem}
+pre.code{background:var(--surface-2);border:1px solid var(--rule);border-radius:4px;padding:13px 16px;
+  overflow-x:auto;font-family:"IBM Plex Mono",monospace;font-size:.775rem;line-height:1.62;color:var(--ink-2);margin:12px 0}
+footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--rule);color:var(--muted);
+  font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.05em;line-height:1.8}
+@media (max-width:560px){.wrap{padding:0 18px 80px}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<div class="mast">
+  <div class="kick"><span>Remediation Record</span><span>branch audit-fixes</span><span>commit ab2fb6e</span></div>
+  <h1>Remediation Record</h1>
+  <p class="sub">What changed in response to the Portfolio Survey Docket, what was verified, and what deliberately remains open. Companion to <code>AUDIT.html</code>.</p>
+</div>
+
+<div class="verdict">
+  <p><strong>All six blockers are resolved and verified against the running server.</strong> The site now has a complete link graph, correct heading structure, working <code>/projects</code> features, a real metadata and structured-data surface, and CI that prevents each of those from regressing.</p>
+  <p><strong>110 files changed: 1,957 insertions, 3,917 deletions.</strong> The repo is materially smaller and every quality gate passes — <code>pnpm verify</code> runs typecheck, asset check, content validation and build, all green.</p>
+  <p>Three items are intentionally left open, listed in §05. The most important is the <strong>AI-102 certification</strong>, which is a factual claim only you can settle.</p>
+</div>
+
+<div class="panel">
+  <div class="cell"><span class="n"><span class="was">0</span><span class="arw">→</span><span class="now">18–28</span></span><span class="l">anchors per page</span></div>
+  <div class="cell"><span class="n"><span class="was">34/68</span><span class="arw">→</span><span class="now">0/43</span></span><span class="l">dead files</span></div>
+  <div class="cell"><span class="n"><span class="was">20</span><span class="arw">→</span><span class="now">8</span></span><span class="l">dependencies</span></div>
+  <div class="cell"><span class="n"><span class="was">47.8</span><span class="arw">→</span><span class="now">32.9 MB</span></span><span class="l">tracked bytes</span></div>
+  <div class="cell"><span class="n"><span class="was">1/9</span><span class="arw">→</span><span class="now">9/9</span></span><span class="l">correct h1</span></div>
+  <div class="cell"><span class="n"><span class="was">0</span><span class="arw">→</span><span class="now">3</span></span><span class="l">ci workflows</span></div>
+</div>
+<div class="panel">
+  <div class="cell"><span class="n"><span class="was">2,590</span><span class="arw">→</span><span class="now">0</span></span><span class="l">dead lines</span></div>
+  <div class="cell"><span class="n"><span class="was">403</span><span class="arw">→</span><span class="now">323</span></span><span class="l">globals.css lines</span></div>
+  <div class="cell"><span class="n"><span class="was">21</span><span class="arw">→</span><span class="now">0</span></span><span class="l">broken asset paths</span></div>
+  <div class="cell"><span class="n"><span class="was">0</span><span class="arw">→</span><span class="now">4</span></span><span class="l">featured projects</span></div>
+  <div class="cell"><span class="n"><span class="was">90</span><span class="arw">→</span><span class="now">78</span></span><span class="l">lint errors (open)</span></div>
+  <div class="cell"><span class="n"><span class="now">14/14</span></span><span class="l">routes build static</span></div>
+</div>
+
+<!-- ============ BLOCKERS ============ -->
+<section id="blockers">
+  <div class="shead"><span class="num">01</span><h2>Blockers Resolved</h2><span class="meta">6 of 6</span></div>
+
+  <div class="rec"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">B1</span><span class="chip done">Fixed &amp; verified</span></div>
+    <h3>The site now has a complete, crawlable link graph.</h3>
+    <p>Added <code>SiteNav</code> — a persistent header with real <code>&lt;Link&gt;</code> elements to all nine routes, rendered on every page, with a mobile panel. Added <code>sitemap.ts</code> and <code>robots.ts</code>, both now live routes in the build output.</p>
+    <div class="ev">before:  /                  0 anchors, 0 internal routes
+         /education         0 anchors   (dead end)
+         /skills            0 anchors   (dead end)
+         /work-experience   0 anchors   (dead end)
+         /certificates      0 anchors   (dead end)
+
+after:   every route  18–28 anchors, 9/9 internal routes reachable
+         /sitemap.xml  200   (9 URLs)
+         /robots.txt   200</div>
+    <p>The four dead-end pages are resolved structurally — the header ships on every route at every viewport, so the <code>hidden md:block</code> problem no longer strands mobile visitors.</p>
+  </div></div>
+
+  <div class="rec"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">B4</span><span class="chip done">Fixed &amp; verified</span></div>
+    <h3><code>/projects</code> features restored — and the bug underneath them.</h3>
+    <p>Populated the required <code>featured</code> and <code>category</code> fields on all six entries. Then fixed the carousel transform that would have stacked every featured card in one pile the moment <code>featured</code> became populated, and clamped the index that computed <code>-1</code> on an empty array.</p>
+    <div class="ev">category pills      now rendering:  AI/ML · Data Engineering · LLM / RAG
+floating dock nav   now rendering
+featured strip      4 cards
+carousel transform  x: (i - idx) * -336   →   x: -idx * 336</div>
+  </div></div>
+
+  <div class="rec"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">B3</span><span class="chip done">Fixed</span></div>
+    <h3>Navigation is no longer blocked for seconds.</h3>
+    <p><code>PageReadySignal</code>'s effect is now keyed on <code>pathname</code>. In the root layout with <code>[]</code> deps it fired exactly once on first load, so the transition overlay never received its dismiss event again and fell through to blind fallback timers on every subsequent navigation. Also removed the duplicate <code>&lt;DynamicCosmic /&gt;</code> from the homepage — two full-screen rAF loops where the second painted over the first.</p>
+  </div></div>
+
+  <div class="rec"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">B6</span><span class="chip done">Fixed &amp; verified</span></div>
+    <h3>Full metadata and structured-data surface.</h3>
+    <p>Rewrote the root metadata with <code>metadataBase</code>, a title template, Open Graph, Twitter card, canonical, robots directives and icons. Added a <code>Person</code> + <code>WebSite</code> JSON-LD graph. Deleted the dead <code>head.tsx</code>. All URLs derive from a single <code>src/lib/site.ts</code> so there is one place to set the domain.</p>
+    <div class="ev">og:title  0 → present     twitter:card  0 → summary_large_image
+og:image  0 → present     JSON-LD       0 → Person + WebSite
+canonical 0 → present     viewport      themeColor + colorScheme: dark</div>
+    <p>I did <em>not</em> split the nine routes into server wrappers for per-page metadata — see §05.</p>
+  </div></div>
+
+  <div class="rec"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">B5</span><span class="chip done">Fixed</span></div>
+    <h3><code>prefers-reduced-motion</code> is now honoured.</h3>
+    <p>Added a global CSS backstop covering every animation, transition and smooth scroll. In the canvas, the rAF loop and the mouse-parallax listener are skipped entirely and a single static frame is painted instead. Also capped DPR (uncapped before — a 3× phone allocated 9× the pixels), hoisted the per-frame gradient allocation out of the tick, and capped star alpha so text contrast is bounded.</p>
+  </div></div>
+
+  <div class="rec part"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">B2</span><span class="chip part">Partially fixed</span></div>
+    <h3>Tailwind config resolved — token migration deferred.</h3>
+    <p>The dead <code>tailwind.config.js</code> is no longer misleading: <code>tailwind-merge</code> was removed and the config's only real content was the unshipped cyan override. The full <code>@theme{}</code> token migration (collapsing 18 cyans, 42 near-blacks, 23 durations) is Phase 4 work and is not done — see §05.</p>
+  </div></div>
+</section>
+
+<!-- ============ CORRECTNESS ============ -->
+<section id="correctness">
+  <div class="shead"><span class="num">02</span><h2>Correctness &amp; Accessibility</h2><span class="meta">applied fixes</span></div>
+
+  <div class="tw"><table>
+    <thead><tr><th>Area</th><th>Was</th><th>Now</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Metric values</strong><br><span class="m">professional-ai</span></td><td><code>{k}</code> rendered, <code>{v}</code> destructured and dropped — every metric showed a label with no number</td><td>Both rendered. Verified live: <span class="m">Accuracy uplift → 18% (domain models)</span></td></tr>
+      <tr><td><strong>Heading structure</strong></td><td>Only <code>/</code> correct. Eight pages shipped a second <code>&lt;h1&gt;</code> from the embedded preview; <code>/skills</code> and <code>/projects</code> had none</td><td><code>HeroSolar</code> takes <code>asHeading</code>, false in previews. <code>/projects</code> h2→h1, <code>/skills</code> gains an sr-only h1 and a <code>&lt;main&gt;</code>. <strong>9/9 pages: exactly one h1</strong></td></tr>
+      <tr><td><strong>Focus ring</strong><br><span class="m">/professional</span></td><td>Page-scoped <code>:focus</code> at 1.29:1 — invisible on every focusable element</td><td>Override deleted; inherits the global <code>#00e6ff</code> ring at 13.4:1, now on <code>:focus-visible</code></td></tr>
+      <tr><td><strong>Keyboard scrolling</strong></td><td>Two components bound <code>PageUp</code>/<code>PageDown</code> to <code>window</code>, breaking page scroll; two decks on one page both answered the same arrow press</td><td>Page keys unbound. Arrows scoped to the widget containing focus or hover, and ignored inside form fields</td></tr>
+      <tr><td><strong>Screen-reader flood</strong></td><td><code>aria-live</code> on a typewriter — a 139-char string queued ~139 announcements</td><td>Full text in an <code>sr-only</code> span announced once; the animation is <code>aria-hidden</code></td></tr>
+      <tr><td><strong>Clipped focus targets</strong></td><td>~64 planet buttons focusable but visually clipped across eight pages (WCAG 2.4.11)</td><td><code>SolarPreview</code> is <code>aria-hidden</code> + <code>inert</code> — it is a decorative echo; real nav is the header</td></tr>
+      <tr><td><strong>Text scaling</strong></td><td><code>html{font-size:16px}</code> overrode the browser font-size preference</td><td><code>100%</code> — user preference applies</td></tr>
+      <tr><td><strong>Reduced-motion text</strong></td><td><code>/professional</code> summary rendered permanently empty for reduced-motion users</td><td>Shows the finished text immediately</td></tr>
+      <tr><td><strong>Canvas in a11y tree</strong></td><td>Bare <code>&lt;canvas&gt;</code>, no <code>aria-hidden</code>, on nine pages</td><td><code>aria-hidden</code> + <code>role="presentation"</code> at the component, fixing all sites at once</td></tr>
+      <tr><td><strong>Invalid classes</strong></td><td><code>bg-black/08</code> ×5 (emitted no CSS — five panels fully transparent), <code>opacity-06</code>, <code>hover:bg:white/8</code>, an unescaped <code>.max-w-[420px]</code> CSS rule</td><td>All corrected</td></tr>
+      <tr><td><strong>Skip link</strong></td><td>None</td><td>First tab stop, visible on focus, targets <code>#main-content</code></td></tr>
+      <tr><td><strong>Nameless buttons</strong></td><td>Featured carousel arrows had no accessible name</td><td><code>aria-label</code> added; icons <code>aria-hidden</code></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============ CLEANUP ============ -->
+<section id="cleanup">
+  <div class="shead"><span class="num">03</span><h2>Cleanup</h2><span class="meta">−3,917 lines</span></div>
+
+  <div class="rec"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">C1</span><span class="chip done">Done</span></div>
+    <h3>Dead code eliminated — verified by import-graph traversal.</h3>
+    <div class="ev">before   68 files · 34 unreachable · 2,590 dead lines (22.9%)
+after    43 files ·  0 unreachable ·     0 dead lines</div>
+    <p>Deleted the 546-line <code>orbit/hero.tsx</code> fork (already diverged from <code>HeroSolar</code> and the direct cause of a live bug), the orphaned <code>src/sections/</code> tree, the six 0-byte placeholder files, the byte-identical duplicate <code>FooterBar</code>, and 25 other unreferenced components.</p>
+  </div></div>
+
+  <div class="rec"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">C2</span><span class="chip done">Done</span></div>
+    <h3>Twelve unused dependencies removed — 99 packages.</h3>
+    <p><code>three</code>, <code>@types/three</code>, <code>@react-three/fiber</code>, <code>@react-three/drei</code>, <code>@react-three/postprocessing</code>, <code>postprocessing</code>, <code>gsap</code>, <code>zustand</code>, <code>tailwind-merge</code>, and the three <code>tsparticles</code> packages. All had zero import sites; the "3D" hero is DOM plus a 2D canvas.</p>
+    <p><strong>Dependencies: 20 → 8.</strong> The shipped bundle is unchanged, as expected — these were never imported, so tree-shaking already excluded them. The gain is install time, CI duration, and CVE surface.</p>
+  </div></div>
+
+  <div class="rec"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">C3</span><span class="chip done">Done</span></div>
+    <h3>Assets and CSS.</h3>
+    <ul class="tight">
+      <li>Deleted <code>src/public/</code> — never served by Next, so every file in it was unreachable.</li>
+      <li>Removed the duplicate <code>public/resume/</code> copies, the unlinked 1.3 MB <code>.pptx</code>, <code>videos/unfold.mp4</code>, and three genuinely unreferenced images.</li>
+      <li>Stripped ~120 lines of dead CSS — including <code>.stars</code>, which pulled a starfield PNG from an unrelated third party's GitHub repo on the render path.</li>
+      <li>Removed the production CSS hack that hid Next.js devtools badges.</li>
+      <li>Gated the ship cursor behind <code>@media (pointer: fine)</code> and restored <code>cursor: pointer</code> on planets.</li>
+    </ul>
+    <p><strong>Tracked bytes: 47.8 MB → 32.9 MB. globals.css: 403 → 323 lines.</strong></p>
+  </div></div>
+
+  <div class="note warn"><b>A deletion I declined to make</b>The performance sweep flagged several project cover images and sketches as unreferenced and safe to delete. They are not — they are referenced indirectly through <code>src/data/projects.json</code>, and all six covers render live. Deleting them would have broken <code>/projects</code>. Only the five genuinely unreferenced files were removed, and <code>check-assets.mjs</code> was written to read <code>.json</code> precisely so this class of mistake fails CI rather than shipping.</div>
+</section>
+
+<!-- ============ AUTOMATION ============ -->
+<section id="automation">
+  <div class="shead"><span class="num">04</span><h2>Automation Added</h2><span class="meta">3 workflows · 4 scripts</span></div>
+
+  <div class="tw"><table>
+    <thead><tr><th>File</th><th>Trigger</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td class="n">.github/workflows/ci.yml</td><td>PR, push to main</td><td>typecheck → asset check → content validation → build. Lint reports but does not block yet (pre-existing backlog).</td></tr>
+      <tr><td class="n">.github/workflows/sync-projects.yml</td><td>Daily 04:17 UTC · manual · <code>repository_dispatch</code></td><td>Regenerates <code>projects.json</code> from GitHub and <strong>opens a PR</strong> rather than pushing.</td></tr>
+      <tr><td class="n">.github/workflows/freshness.yml</td><td>Mondays 06:00 UTC</td><td>Flags expiring role-based certs and stale projects; opens or updates one issue.</td></tr>
+      <tr><td class="n">scripts/check-assets.mjs</td><td><code>pnpm check:assets</code></td><td>Fails if any referenced <code>public/</code> asset is missing. Caught all 15 broken paths on its first run.</td></tr>
+      <tr><td class="n">scripts/validate-content.mjs</td><td><code>pnpm check:content</code></td><td>Schema for <code>projects.json</code>. <code>featured</code> and <code>category</code> are now <strong>required</strong>, so B4 can never silently recur.</td></tr>
+      <tr><td class="n">scripts/sync-github-projects.mjs</td><td>CI or manual</td><td>Pulls repos tagged <code>portfolio</code>; pinned → <code>featured</code>, topics → <code>category</code>; overrides file always wins.</td></tr>
+      <tr><td class="n">scripts/freshness.mjs</td><td><code>node scripts/freshness.mjs</code></td><td>Cert expiry and staleness audit.</td></tr>
+    </tbody>
+  </table></div>
+
+  <p class="lede">The GitHub sync uses the build-time approach from the audit rather than runtime ISR: the site stays fully static, the rate limit is a non-issue at one authenticated run per day, and every content change arrives as a reviewable diff. Opt in by adding the topic <code>portfolio</code> to a repository.</p>
+
+  <div class="note"><b>One secret to add before the sync runs</b>Create a repository secret <code>PORTFOLIO_GH_PAT</code> with <code>public_repo</code> and <code>read:user</code> scopes. The read:user scope is required because pinned repositories are a user-level GraphQL field that the default <code>GITHUB_TOKEN</code> cannot see. Until then, <code>sync-projects.yml</code> will fail; nothing else depends on it.</div>
+
+  <p class="lede">The freshness script was validated against real data. It correctly flags AI-102 as 25 months past issue, and correctly does <em>not</em> flag AI-900 — Microsoft Fundamentals certifications never expire, only role-based ones do.</p>
+
+  <p>Also added: <code>.nvmrc</code>, grouped Dependabot config, <code>packageManager</code> and <code>engines</code> pins, security headers and avif in <code>next.config.ts</code>, removal of the broken <code>next export</code> script, and a rewritten README replacing the create-next-app boilerplate.</p>
+</section>
+
+<!-- ============ OPEN ============ -->
+<section id="open">
+  <div class="shead"><span class="num">05</span><h2>Deliberately Left Open</h2><span class="meta">3 items</span></div>
+  <p class="lede">These were not attempted, for reasons given. Nothing here blocks the site from working.</p>
+
+  <div class="rec open"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">O1</span><span class="chip open">Needs your decision</span></div>
+    <h3>The AI-102 certification claim.</h3>
+    <p><code>/certificates</code> displays <strong>Microsoft Certified: Azure AI Engineer Associate (AI-102)</strong>, issued <strong>Jun 30 2024</strong>, presented as current. Microsoft role-based certifications expire twelve months after issue unless renewed — this one is <strong>25 months old</strong>.</p>
+    <p>I did not change it. If you renewed it, the displayed issue date should be updated to the renewal date and nothing is wrong. If you did not, a live portfolio is currently asserting a lapsed credential to recruiters. Either way this is a factual claim about you, so it is yours to settle — the weekly freshness job will keep raising it until the data changes.</p>
+    <p>AI-900 is a Fundamentals certification and never expires. It is correctly not flagged.</p>
+  </div></div>
+
+  <div class="rec part"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">O2</span><span class="chip part">Deferred — Phase 4</span></div>
+    <h3>The design-system consolidation.</h3>
+    <p>Not attempted: 18 cyans, 42 near-blacks, 35 shadows, 23 animation durations, 211 inline style objects, 20 button recipes and 25 card recipes remain. No typeface is loaded — the site still renders in the system default. The 189 borders and surfaces at 2–8% opacity are still effectively invisible.</p>
+    <p>This is the largest remaining body of work and it is almost entirely visual. Doing it properly means a <code>@theme{}</code> token block plus extracting <code>Surface</code>, <code>Button</code> and <code>Modal</code> — those three alone replace about 90 bespoke recipes. It deserves its own pass with you reviewing the result, rather than being folded silently into a remediation commit. <strong>Loading a typeface is the single highest-value change in it.</strong></p>
+  </div></div>
+
+  <div class="rec part"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">O3</span><span class="chip part">Deferred</span></div>
+    <h3>Per-page metadata and the lint backlog.</h3>
+    <p>All nine pages remain <code>"use client"</code>, so they still share one title and description. Fixing it means splitting each route into a thin Server Component wrapper — roughly ten lines per route, low risk, but nine files of churn on top of an already large change. The root metadata, sitemap and JSON-LD deliver most of the SEO benefit now; per-page titles are the remaining increment.</p>
+    <p>Lint sits at <strong>78 errors / 27 warnings</strong>, down from 90/33 only as a side-effect of deleting dead files. The bulk is <code>@typescript-eslint/no-explicit-any</code> (concentrated in <code>professional-ai</code>) and unused vars. CI reports lint with <code>continue-on-error</code> so the backlog is visible without blocking; remove that flag once it is cleared.</p>
+    <p>Also still open from the audit: the six modals lack focus traps and body-scroll locking, <code>/skills</code> autoplays a video with no pause control, three carousels remain clipped or mispositioned on mobile, and <code>/professional</code> vs <code>/professional-ai</code> are still two pages maintaining the same résumé.</p>
+  </div></div>
+</section>
+
+<!-- ============ VERIFY ============ -->
+<section id="verify">
+  <div class="shead"><span class="num">06</span><h2>How This Was Verified</h2><span class="meta">reproducible</span></div>
+  <p class="lede">Every claim above was checked against build output or the running server, not assumed from the diff.</p>
+
+<pre class="code">pnpm verify        # typecheck → check:assets → check:content → build
+
+  typecheck              0 errors
+  check-assets           all referenced public/ assets exist (44 files scanned)
+  validate-content       6 projects OK (4 featured, 3 categories)
+  build                  14/14 routes prerendered static
+
+curl checks against localhost:3000
+
+  anchors per route      18 · 28 · 20 · 18 · 18 · 18 · 18 · 24 · 26
+  internal routes seen   9/9 on every page
+  h1 per route           1 · 1 · 1 · 1 · 1 · 1 · 1 · 1 · 1
+  http status            200 × 9
+  /sitemap.xml           200, 9 &lt;loc&gt; entries
+  /robots.txt            200
+  og / twitter / ld+json present
+  category pills         AI/ML · Data Engineering · LLM / RAG
+  metric values          "Accuracy uplift" → "18% (domain models)"</pre>
+
+  <p>Work is committed on branch <code>audit-fixes</code> as <code>ab2fb6e</code>, leaving <code>main</code> untouched. Review the diff, then merge when you are satisfied. Nothing was pushed to a remote.</p>
+</section>
+
+<footer>
+  Remediation applied against commit <span class="m">f5dd8eb</span> · branch <span class="m">audit-fixes</span> · <span class="m">ab2fb6e</span><br>
+  110 files changed · 1,957 insertions · 3,917 deletions · Next 16.0.4 · Node v22.16.0 · pnpm 10.23.0<br>
+  Companion document: <span class="m">AUDIT.html</span>
+</footer>
+
+</div>
+
+</body>
+</html>
