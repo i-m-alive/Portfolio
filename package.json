@@ -15,7 +15,10 @@
     "typecheck": "tsc --noEmit",
     "check:assets": "node scripts/check-assets.mjs",
     "check:content": "node scripts/validate-content.mjs",
-    "verify": "pnpm typecheck && pnpm check:assets && pnpm check:content && pnpm build"
+    "verify": "pnpm typecheck && pnpm check:assets && pnpm check:content && pnpm build",
+    "sync:projects": "node scripts/sync-github-projects.mjs",
+    "sync:check": "node scripts/sync-github-projects.mjs --check",
+    "freshness": "node scripts/freshness.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

@@ -1,8 +1,8 @@
-name: Sync projects from GitHub
+name: Sync project metadata
 
 on:
   schedule:
-    - cron: "17 4 * * *" # 04:17 UTC daily
+    - cron: "17 4 * * 1" # Mondays 04:17 UTC
   workflow_dispatch:
   repository_dispatch:
     types: [portfolio-refresh] # other repos can ping this on push
@@ -21,27 +21,32 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      - name: Regenerate projects.json
+      # Enrich-only: refreshes last_updated, stars, language, homepage and
+      # status from the GitHub API. Never touches hand-written copy.
+      - name: Refresh GitHub-managed fields
         run: node scripts/sync-github-projects.mjs
         env:
-          # PAT with public_repo + read:user. The repo-scoped GITHUB_TOKEN
-          # cannot read user-level pinned items.
+          # Optional. Unauthenticated is 60 req/hr, which is plenty for ~6
+          # repos once a week, but a token avoids shared-runner rate limits.
           GH_TOKEN: ${{ secrets.PORTFOLIO_GH_PAT }}
 
-      - name: Validate the generated file
+      - name: Validate the result
         run: node scripts/validate-content.mjs
 
-      # A PR rather than a direct push: this file decides what the portfolio
-      # claims about your work, so it gets one human look before it ships.
       - uses: peter-evans/create-pull-request@v7
         with:
-          commit-message: "chore(data): sync projects.json from GitHub"
-          title: "chore(data): sync projects.json"
+          commit-message: "chore(data): refresh project metadata from GitHub"
+          title: "chore(data): refresh project metadata"
           body: |
-            Automated daily sync from the GitHub API.
+            Automated weekly refresh of GitHub-managed fields only:
+            `last_updated`, `stars`, `language`, `homepage`, `status`.
 
-            Only repos tagged with the `portfolio` topic are included.
-            Hand-written copy lives in `src/data/projects.overrides.json`
-            and always wins over API values — review the diff before merging.
+            Hand-written fields (title, short, desc, architecture, metric,
+            ops, tech, cover, category, featured) are never modified by this
+            job — `projects.json` remains the source of truth for those.
+
+            The run log also reports any repo that 404s or has been archived,
+            and any repo that now has enough GitHub metadata to be generated
+            rather than curated.
           branch: bot/sync-projects
           add-paths: src/data/projects.json

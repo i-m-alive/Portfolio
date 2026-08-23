@@ -16,7 +16,7 @@
     "images": [
       "/projects/minddocs-ai/arch.png"
     ],
-    "last_updated": "2025-09-30",
+    "last_updated": "2025-08-01",
     "excerpt": "Built multimodal document processing and RAG chatbots; integrated Azure Blob, LangChain and Hugging Face; deployed containerized services with CI/CD.",
     "desc": "End-to-end multimodal pipeline that ingests PDFs/images, runs OCR, creates embeddings and serves RAG-based chatbots and summarizers with multi-language translation support.",
     "architecture": [
@@ -33,14 +33,16 @@
       "Legal Sage"
     ],
     "category": "LLM / RAG",
-    "featured": true
+    "featured": true,
+    "stars": 1,
+    "language": "Python"
   },
   {
     "title": "Tourist Buddy",
     "slug": "tourist-buddy",
     "short": "AI-powered trip planner that generates budget-friendly itineraries, route maps, day-wise plans, weather insights, and expenditure breakdowns using agentic workflows.",
     "status": "code-only",
-    "github": "https://github.com/i-m-alive/tourist-buddy-",
+    "github": "https://github.com/i-m-alive/Tourist-buddy-",
     "tech": [
       "LangChain",
       "LangGraph",
@@ -69,7 +71,9 @@
       "MindDocs AI"
     ],
     "category": "LLM / RAG",
-    "featured": true
+    "featured": true,
+    "stars": 1,
+    "language": "Python"
   },
   {
     "title": "AI Chatbot — Resident's Manual (AIIMS)",
@@ -84,7 +88,7 @@
       "PyTorch"
     ],
     "cover": "/projects/aiims-chatbot/cover.jpg",
-    "last_updated": "2024-11-20",
+    "last_updated": "2025-12-01",
     "excerpt": "Custom LLM chatbot for medical QA using FAISS and retrieval-augmented generation.",
     "desc": "Specialized retrieval-augmented chatbot tuned for medical residents, focused on high-precision answers for procedural and policy queries from the hospital manual.",
     "architecture": [
@@ -101,7 +105,8 @@
       "Legal Sage"
     ],
     "category": "LLM / RAG",
-    "featured": true
+    "featured": true,
+    "stars": 1
   },
   {
     "title": "Legal Sage",
@@ -116,7 +121,7 @@
       "Docker"
     ],
     "cover": "/projects/legal-sage/cover.jpg",
-    "last_updated": "2024-07-15",
+    "last_updated": "2025-12-01",
     "excerpt": "Fine-tuned BERT/GPT-2/T5 for summarization and structured extraction pipelines for legal professionals.",
     "desc": "Toolkit to summarize legal contracts and extract structured clause-level information with optional multi-language translation for cross-jurisdiction review.",
     "architecture": [
@@ -132,7 +137,8 @@
       "AIIMS Resident's Manual"
     ],
     "category": "AI/ML",
-    "featured": true
+    "featured": true,
+    "stars": 1
   },
   {
     "title": "MeetScheduler",
@@ -149,7 +155,7 @@
       "Webhook Agents"
     ],
     "cover": "/projects/meet-scheduler/cover.jpg",
-    "last_updated": "2025-01-10",
+    "last_updated": "2025-09-11",
     "excerpt": "Built an intelligent agent on Google Cloud that automates scheduling, notifying attendees, blocking calendars, and managing Google Meet and Calendar events end-to-end.",
     "desc": "Automates meeting scheduling across Google Workspace accounts using heuristics + small LLM prompts to infer meeting preferences and availability.",
     "architecture": [
@@ -163,7 +169,9 @@
     "ops": "Hosted on GCP (Cloud Run / App Engine) with service account-based auth. CI/CD for deployments and infra-as-code for service bindings.",
     "related": [],
     "category": "Data Engineering",
-    "featured": false
+    "featured": false,
+    "stars": 1,
+    "language": "Python"
   },
   {
     "title": "Artimacy",
@@ -177,7 +185,7 @@
       "JavaScript"
     ],
     "cover": "/projects/artimacy/cover.jpg",
-    "last_updated": "2025-11-25",
+    "last_updated": "2024-01-27",
     "excerpt": "Initial handcrafted e-commerce site built with vanilla HTML/CSS/JS: product pages, responsive layout, cart simulation, and basic client-side interactions.",
     "desc": "MVP front-end store demonstrating layout, responsive gallery, product cards and a simulated cart for showcasing artwork listings.",
     "architecture": [
@@ -190,6 +198,8 @@
     "ops": "Static site deployable on Netlify / Vercel or any static host. No CI required for MVP—CI/CD added when connecting to a backend.",
     "related": [],
     "category": "AI/ML",
-    "featured": false
+    "featured": false,
+    "stars": 1,
+    "language": "HTML"
   }
 ]

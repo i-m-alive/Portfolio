@@ -50,22 +50,44 @@ Project data lives in `src/data/projects.json` and is schema-validated by
 optional once, and their absence silently blanked four sections of `/projects`
 with no error anywhere.
 
-`src/data/projects.overrides.json` holds hand-written copy keyed by GitHub repo
-name. It always wins over values pulled from the GitHub API.
+`projects.json` is the source of truth for everything written by hand.
 
 ## Automation
 
 | Workflow | Trigger | Does |
 | --- | --- | --- |
 | `ci.yml` | PR, push to `main` | typecheck, asset check, content validation, build |
-| `sync-projects.yml` | Daily 04:17 UTC, manual, `repository_dispatch` | Regenerates `projects.json` from repos tagged `portfolio` and opens a PR |
+| `sync-projects.yml` | Mondays 04:17 UTC, manual, `repository_dispatch` | Refreshes GitHub-managed fields and opens a PR |
 | `freshness.yml` | Mondays 06:00 UTC | Flags expiring role-based certs and stale projects, opens an issue |
 
-The sync workflow needs a `PORTFOLIO_GH_PAT` secret with `public_repo` and
-`read:user` scopes — pinned repositories are a user-level GraphQL field the
-default `GITHUB_TOKEN` cannot read.
+### How the GitHub sync works
 
-To include a repository in the portfolio, add the topic `portfolio` to it.
+It **enriches, it does not replace.** Only these fields are written:
+
+```
+last_updated  stars  language  homepage  status
+```
+
+Everything else — `title`, `short`, `desc`, `architecture`, `metric`, `ops`,
+`tech`, `cover`, `category`, `featured` — is yours and is never modified.
+
+```bash
+pnpm sync:check      # report drift, write nothing
+pnpm sync:projects   # apply
+```
+
+Full README-driven card generation is deliberately **not** used. Measured
+against the real repos: 25 of 34 had no description, 0 of 34 had topics, two of
+the four flagship projects had no README at all, and MindDocs' README was 18
+bytes. Generating from that would replace good copy with nothing.
+
+The sync run reports which repos have grown a real description plus three or
+more topics; those are ready to switch from curated to generated whenever you
+want. Adding a description and topics to a repo is the upgrade path.
+
+`GH_TOKEN` / the `PORTFOLIO_GH_PAT` secret is optional — unauthenticated is
+60 requests/hour, ample for six repos once a week — but a token avoids
+shared-runner rate limits.
 
 ## Deployment
 

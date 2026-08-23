@@ -1,164 +1,148 @@
 /**
- * Regenerates src/data/projects.json from GitHub.
+ * Enrich src/data/projects.json from the GitHub API.
  *
- *   GH_TOKEN=<pat> node scripts/sync-github-projects.mjs
+ *   node scripts/sync-github-projects.mjs           # write changes
+ *   node scripts/sync-github-projects.mjs --check   # report drift, exit 1, write nothing
+ *   GH_TOKEN=<pat> node scripts/sync-github-projects.mjs   # 5000 req/hr instead of 60
  *
- * Design notes
- * ------------
- * - Opt-in by topic: only repos tagged `portfolio` are included, so the list is
- *   controlled from the GitHub UI with no code change.
- * - Overrides win: anything in src/data/projects.overrides.json beats the API,
- *   so hand-written prose is never clobbered by a generated description.
- * - Pinned repos become `featured`; topics map to `category`. Both fields are
- *   required by scripts/validate-content.mjs.
+ * MODE: enrich, don't replace.
+ * -------------------------------------------------------------------------
+ * projects.json is the source of truth for everything a human wrote. This
+ * script only refreshes fields that GitHub is authoritative about and that go
+ * stale on their own. It will never touch your prose.
  *
- * The PAT needs `public_repo` + `read:user` (pinned items are a user-level
- * GraphQL field that the repo-scoped GITHUB_TOKEN cannot see).
+ * Why not generate the whole card from the README? Measured against the real
+ * repos on 2026-08-23: 25 of 34 had no description, 0 of 34 had topics, two of
+ * the four flagship projects had no README at all, and MindDocs' README was 18
+ * bytes. Generating from that source would replace good hand-written copy with
+ * nothing. Once a repo has a real description + topics it can graduate — this
+ * script reports which ones are ready.
  */
-import { writeFileSync, readFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 
-const USER = "i-m-alive";
+const OWNER = "i-m-alive";
+const FILE = "src/data/projects.json";
+const CHECK_ONLY = process.argv.includes("--check");
 const TOKEN = process.env.GH_TOKEN;
-const OUT = "src/data/projects.json";
-const OVERRIDES = "src/data/projects.overrides.json";
 
-if (!TOKEN) {
-  console.error("GH_TOKEN is required (public_repo + read:user)");
-  process.exit(1);
-}
+/** GitHub owns these. Everything else is yours and is never written. */
+const MANAGED = ["last_updated", "stars", "language", "homepage", "status"];
 
-const H = {
-  Authorization: `Bearer ${TOKEN}`,
-  "User-Agent": "portfolio-sync",
+const headers = {
   Accept: "application/vnd.github+json",
+  "User-Agent": "portfolio-sync",
+  ...(TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {}),
 };
 
-const CATEGORY_RULES = [
-  [/^(llm|rag|langchain|langgraph|genai|chatbot)$/, "LLM / RAG"],
-  [/^(mlops|docker|kubernetes|ci-cd|devops)$/, "MLOps"],
-  [/^(data-engineering|etl|pipeline|spark|sql)$/, "Data Engineering"],
-];
+const projects = JSON.parse(readFileSync(FILE, "utf8"));
+const changes = [];
+const problems = [];
+const graduates = [];
 
-const categoryFor = (topics = []) => {
-  for (const t of topics)
-    for (const [re, cat] of CATEGORY_RULES) if (re.test(t)) return cat;
-  return "AI/ML";
-};
+for (const p of projects) {
+  if (!p.github) {
+    problems.push(`${p.slug}: no github URL`);
+    continue;
+  }
+  const repo = p.github.replace(/\/+$/, "").split("/").pop();
 
-async function gh(path) {
-  const r = await fetch(`https://api.github.com${path}`, { headers: H });
-  if (!r.ok) throw new Error(`${path} -> ${r.status} ${r.statusText}`);
-  return r.json();
-}
-
-async function pinnedAndImages() {
-  const query = `{
-    user(login:"${USER}") {
-      pinnedItems(first:6, types:REPOSITORY){ nodes{ ... on Repository { name } } }
-      repositories(first:100, ownerAffiliations:OWNER){ nodes{ name openGraphImageUrl } }
-    }
-  }`;
-  const res = await fetch("https://api.github.com/graphql", {
-    method: "POST",
-    headers: { ...H, "Content-Type": "application/json" },
-    body: JSON.stringify({ query }),
-  }).then((r) => r.json());
-
-  if (res.errors) throw new Error(JSON.stringify(res.errors));
-  const u = res.data.user;
-  return {
-    pinned: new Set(u.pinnedItems.nodes.map((n) => n.name)),
-    ogImage: Object.fromEntries(
-      u.repositories.nodes.map((n) => [n.name, n.openGraphImageUrl])
-    ),
-  };
-}
-
-async function readmeExcerpt(name) {
+  let data;
   try {
-    const raw = await fetch(
-      `https://api.github.com/repos/${USER}/${name}/readme`,
-      { headers: { ...H, Accept: "application/vnd.github.raw" } }
-    ).then((r) => (r.ok ? r.text() : ""));
-    return (
-      raw
-        .replace(/^---[\s\S]*?---/, "")
-        .replace(/!?\[[^\]]*\]\([^)]*\)/g, "")
-        .replace(/^#{1,6}.*$/gm, "")
-        .replace(/[`*_>|]/g, "")
-        .split(/\n\s*\n/)
-        .map((s) => s.trim())
-        .find((s) => s.length > 40)
-        ?.slice(0, 320) ?? ""
+    const res = await fetch(
+      `https://api.github.com/repos/${OWNER}/${repo}`,
+      { headers }
     );
-  } catch {
-    return "";
+    if (res.status === 404) {
+      problems.push(`${p.slug}: ${p.github} -> 404 (renamed, deleted or private)`);
+      continue;
+    }
+    if (res.status === 403) {
+      problems.push(
+        `${p.slug}: rate limited (403). Set GH_TOKEN for 5000 req/hr.`
+      );
+      continue;
+    }
+    if (!res.ok) {
+      problems.push(`${p.slug}: ${res.status} ${res.statusText}`);
+      continue;
+    }
+    data = await res.json();
+  } catch (e) {
+    problems.push(`${p.slug}: ${e.message}`);
+    continue;
+  }
+
+  if (data.archived) problems.push(`${p.slug}: repository is archived on GitHub`);
+
+  const incoming = {
+    last_updated: data.pushed_at.slice(0, 10),
+    stars: data.stargazers_count,
+    language: data.language ?? undefined,
+    homepage: data.homepage || undefined,
+    status: data.homepage ? "deployed" : "code-only",
+  };
+
+  for (const key of MANAGED) {
+    const before = p[key];
+    const after = incoming[key];
+    if (after === undefined && before === undefined) continue;
+    if (before === after) continue;
+    changes.push({
+      slug: p.slug,
+      key,
+      before: before ?? "(unset)",
+      after: after ?? "(unset)",
+    });
+    if (after === undefined) delete p[key];
+    else p[key] = after;
+  }
+
+  // Repos that now carry enough metadata to be generated rather than curated.
+  const topics = data.topics ?? [];
+  if (data.description && topics.length >= 3) {
+    graduates.push(`${p.slug} (${repo}) — has description + ${topics.length} topics`);
   }
 }
 
-const overrides = existsSync(OVERRIDES)
-  ? JSON.parse(readFileSync(OVERRIDES, "utf8"))
-  : {};
+/* ------------------------------------------------------------- reporting -- */
 
-const repos = (await gh(`/users/${USER}/repos?per_page=100&sort=pushed`)).filter(
-  (r) => !r.fork && !r.archived && (r.topics ?? []).includes("portfolio")
-);
+if (changes.length === 0) {
+  console.log("sync: no drift — all GitHub-managed fields are current.");
+} else {
+  console.log(`sync: ${changes.length} field(s) drifted\n`);
+  const w = Math.max(...changes.map((c) => c.slug.length));
+  for (const c of changes) {
+    console.log(
+      `  ${c.slug.padEnd(w)}  ${c.key.padEnd(13)} ${String(c.before)}  ->  ${c.after}`
+    );
+  }
+}
 
-if (repos.length === 0) {
-  console.error(
-    "No repos carry the `portfolio` topic — refusing to write an empty file."
+if (problems.length) {
+  console.log(`\nneeds attention (${problems.length}):`);
+  problems.forEach((p) => console.log(`  ${p}`));
+}
+
+if (graduates.length) {
+  console.log(`\nready to switch from curated to generated (${graduates.length}):`);
+  graduates.forEach((g) => console.log(`  ${g}`));
+  console.log(
+    "  These repos now have a real description and topics on GitHub, so their\n" +
+      "  short/tech fields could be sourced from the API instead of by hand."
   );
-  process.exit(1);
 }
 
-const { pinned, ogImage } = await pinnedAndImages();
-const warnings = [];
-const projects = [];
-
-for (const r of repos) {
-  const ov = overrides[r.name] ?? {};
-  const excerpt = await readmeExcerpt(r.name);
-  if (!r.description && !ov.short && !excerpt) warnings.push(r.name);
-
-  const slug =
-    ov.slug ?? r.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-
-  projects.push({
-    slug,
-    title:
-      ov.title ??
-      r.name.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-    short:
-      ov.short ??
-      r.description ??
-      excerpt.split(". ")[0] ??
-      `${r.language ?? "Code"} project`,
-    excerpt: ov.excerpt ?? excerpt || undefined,
-    desc: ov.desc,
-    architecture: ov.architecture,
-    metric: ov.metric,
-    ops: ov.ops,
-    tech: ov.tech ?? (r.topics ?? []).filter((t) => t !== "portfolio"),
-    cover: ov.cover ?? ogImage[r.name] ?? undefined,
-    github: r.html_url,
-    homepage: r.homepage || undefined,
-    status: r.homepage ? "deployed" : "code-only",
-    stars: r.stargazers_count,
-    language: r.language ?? undefined,
-    featured: ov.featured ?? pinned.has(r.name),
-    category: ov.category ?? categoryFor(r.topics),
-    last_updated: r.pushed_at.slice(0, 10),
-    related: ov.related ?? [],
-  });
+if (CHECK_ONLY) {
+  if (changes.length || problems.length) {
+    console.log("\n--check: drift detected, nothing written.");
+    process.exit(1);
+  }
+  process.exit(0);
 }
 
-projects.sort(
-  (a, b) =>
-    Number(b.featured) - Number(a.featured) ||
-    b.last_updated.localeCompare(a.last_updated)
-);
+if (changes.length) {
+  writeFileSync(FILE, JSON.stringify(projects, null, 2) + "\n");
+  console.log(`\nwrote ${FILE}`);
+}
 
-writeFileSync(OUT, JSON.stringify(projects, null, 2) + "\n");
-console.log(`wrote ${projects.length} projects to ${OUT}`);
-if (warnings.length)
-  console.warn(`no description available for: ${warnings.join(", ")}`);
+if (problems.length) process.exit(1);
