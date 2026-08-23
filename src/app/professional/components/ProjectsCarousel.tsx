@@ -45,6 +45,7 @@ export default function ProjectsCarousel({ projects }: { projects: Project[] }) 
 
   // 👉 touch state for swipe on phone
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const deckRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     indexRef.current = index;
@@ -66,10 +67,21 @@ export default function ProjectsCarousel({ projects }: { projects: Project[] }) 
   };
   moveRef.current = move;
 
+  // Arrow keys are scoped to this widget: it must contain focus or be
+  // hovered. PageUp/PageDown are deliberately NOT bound — they are the
+  // primary keyboard page-scroll keys and binding them broke scrolling.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight" || e.key === "PageDown") moveRef.current(1);
-      if (e.key === "ArrowLeft" || e.key === "PageUp") moveRef.current(-1);
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      const t = e.target as HTMLElement | null;
+      if (t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return;
+      const root = deckRef.current;
+      if (!root) return;
+      const active =
+        root.contains(document.activeElement) || root.matches(":hover");
+      if (!active) return;
+      e.preventDefault();
+      moveRef.current(e.key === "ArrowRight" ? 1 : -1);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -112,7 +124,7 @@ export default function ProjectsCarousel({ projects }: { projects: Project[] }) 
   const CARD_WIDTH = 320;
 
   return (
-    <section className="space-y-4">
+    <section ref={deckRef} className="space-y-4">
       <h3 className="mb-1 text-2xl font-semibold text-cyan-100">
         Featured AI Projects
       </h3>

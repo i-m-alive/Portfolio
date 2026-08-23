@@ -52,7 +52,11 @@ export default function SkillsHUDPage() {
   const frameHalf = Math.round(videoSize.width / 2);
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden text-white">
+    <main className="relative min-h-screen overflow-x-hidden text-white">
+      {/* The visible title bar shows the site owner's name, not this page's
+          subject, so the page heading is provided for AT and search engines. */}
+      <h1 className="sr-only">Skills</h1>
+
       {/* background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <DynamicCosmic />
@@ -186,6 +190,6 @@ export default function SkillsHUDPage() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

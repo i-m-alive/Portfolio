@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Missing public/ asset check
+        run: pnpm check:assets
+
+      - name: Content schema validation
+        run: pnpm check:content
+
+      - name: Build
+        run: pnpm build
+
+      # Lint is reported but does not block yet: the repo carries a backlog of
+      # pre-existing `any` and unused-var violations. Remove continue-on-error
+      # once that backlog is cleared.
+      - name: Lint
+        run: pnpm lint
+        continue-on-error: true

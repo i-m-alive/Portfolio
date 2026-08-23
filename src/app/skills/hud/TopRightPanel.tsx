@@ -54,7 +54,7 @@ export default function TopRightPanel() {
       {/* solar preview circle */}
       <div className="relative w-[400px] h-[400px] rounded-full bg-black/20 border border-cyan-400/6 flex items-center justify-center overflow-hidden">
         <div className="absolute w-[260px] h-[260px] rounded-full border border-cyan-400/8 opacity-10" />
-        <div className="absolute w-[200px] h-[200px] rounded-full border border-cyan-400/6 opacity-06" />
+        <div className="absolute w-[200px] h-[200px] rounded-full border border-cyan-400/6 opacity-60" />
 
         <div className="z-10 w-[350px] h-[350px] rounded-full overflow-hidden border border-cyan-400/8">
           <SolarPreview scale={0.9} height="350px" />

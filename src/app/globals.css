@@ -41,10 +41,8 @@ img {
 
 /* Site variables */
 :root {
-  --site-text-size: 16px;
-  --accent-cyan: 0 210 255;
+  --site-text-size: 100%;
   --paper-texture: url('/textures/paper-grain.jpg');
-  --orbit-bg: #050507;
 }
 
 /* high contrast override (basic) */
@@ -54,19 +52,9 @@ img {
 }
 
 /* optional: improve focus outlines for keyboard users */
-:focus { outline: 2px dashed #00e6ff; outline-offset: 3px; }
+:focus-visible { outline: 2px solid #00e6ff; outline-offset: 3px; }
 
-/* fonts: prefer swap to avoid FOIT/CLS on font load */
-@font-face {
-  font-family: "InterVarFallback";
-  src: local("Inter"), local("system-ui");
-  font-display: swap;
-}
 
-/* themes */
-.theme-sketch { --bg: #0b0b0b; --accent: rgb(80 200 200 / 1); background-image: var(--paper-texture); color: #efece6; }
-.theme-rap { --bg: #050007; --accent: rgb(255 64 129 / 1); background-image: linear-gradient(180deg,#050007,#0b0010); color: #fff7f9; }
-.theme-ai { --bg: #020816; --accent: rgb(0 200 255 / 1); background-image: linear-gradient(180deg,#020816,#001021); color: #e6fbff; }
 
 /* --- orbit polishing & layout stability --- */
 /* Reserve stable height for the hero/stage to avoid layout shifts */
@@ -110,29 +98,6 @@ img {
   .orbit-hero .orbit-stage { height: 360px; }
 }
 
-/* PageTransition themed backgrounds */
-.transition-sketch {
-  background-image: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.03), transparent 10%), url('/textures/paper-grain.jpg');
-  background-size: cover;
-  background-color: #0b0b0b;
-  color: #efece6;
-}
-.transition-rap {
-  background: linear-gradient(180deg,#060007,#0b0010);
-  background-blend-mode: screen;
-  color: #fff7f9;
-  animation: rapGlow 2.8s ease-in-out infinite;
-}
-@keyframes rapGlow {
-  0%,100% { filter: hue-rotate(0deg); opacity: 0.95; }
-  50% { filter: hue-rotate(20deg); opacity: 1; }
-}
-.transition-ai {
-  background-image: radial-gradient(circle at 10% 10%, rgba(0,200,255,0.06), transparent 12%), linear-gradient(180deg,#001021,#000814);
-  background-size: cover;
-  color: #e6fbff;
-}
-.transition-default { background: linear-gradient(180deg, rgba(0,0,0,0.85), rgba(0,0,0,0.9)); }
 
 /* orbit-radial-overlay (small quick radial shadow on click) - fixed so it won't impact layout */
 .orbit-radial-overlay {
@@ -175,11 +140,6 @@ img {
   z-index: 9999 !important;
 }
 
-/* prevent native cursor from leaking through interactive planet elements when using JS overlay */
-/* (note: this is conservative; if you want browser-native pointer on planets, remove these lines or use .force-cursor) */
-.orbit-planet, .orbit-planet * {
-  cursor: none !important;
-}
 
 /* hide native cursor when ShipCursor adds this to the .home element */
 .home.hide-native-cursor, .home.hide-native-cursor * {
@@ -259,10 +219,11 @@ img {
    Ship cursor for HeroSolar
    --------------------------- */
 
-.orbit-hero,
-.orbit-hero * {
-  /* try .cur first (with hotspot 16 16), then png/svg */
-  cursor: url('/ship.cur'), url('/ship.png') 16 16, url('/ship.svg') 16 16, auto !important;
+@media (pointer: fine) {
+  .orbit-hero, .orbit-hero * {
+    cursor: url('/ship.cur'), url('/ship.png') 16 16, url('/ship.svg') 16 16, auto;
+  }
+  .orbit-planet, .orbit-planet *, .force-cursor { cursor: pointer; }
 }
 
 /* Some controls (links, buttons) should still show pointer — add .force-cursor on them */
@@ -280,50 +241,6 @@ img {
 .high-contrast :focus { outline-color: #000 !important; }
 
 /* END OF globals.css - orbit & layout rules */
-
-/* Video background */
-.video-bg {
-  position: fixed;
-  inset: 0;
-  z-index: -9999; /* behind everything */
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.video-bg__media {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 140%;
-  height: 140%;
-  transform: translate(-50%, -50%);
-  object-fit: cover;
-  opacity: 0.82;
-  filter: saturate(1.05) contrast(0.95);
-  will-change: transform, opacity;
-  backface-visibility: hidden;
-}
-
-/* subtle dark overlay to increase contrast for your orbit content */
-.video-bg__overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.52));
-  pointer-events: none;
-  mix-blend-mode: normal;
-}
-
-/* Slight parallax on large screens: slow zoom on video for motion */
-@media (min-width: 1024px) {
-  .video-bg__media {
-    animation: video-zoom 40s linear infinite;
-  }
-  @keyframes video-zoom {
-    0% { transform: translate(-50%, -50%) scale(1); }
-    50% { transform: translate(-50%, -50%) scale(1.06); }
-    100% { transform: translate(-50%, -50%) scale(1); }
-  }
-}
 
 /* Ensure orbit elements remain above the overlay */
 .orbit-hero, .orbit-stage, .orbit-planet, .orbit-sun {
@@ -355,7 +272,7 @@ img {
 /* The main container should be relative so the canvas is sized to it */
 .home {
   position: relative;
-  overflow: hidden;
+  overflow-x: clip; /* was overflow:hidden — blocked reflow (WCAG 1.4.10) */
 }
 
 .orbit-planet-inner {
@@ -364,39 +281,43 @@ img {
 }
 
 
-/* Cosmic floating cards glow */
-.neon-border {
-  border: 1px solid rgba(0, 255, 255, 0.15);
-  box-shadow: 0 0 12px rgba(0, 255, 255, 0.15);
-  transition: 0.3s ease;
+
+
+
+/* ==========================================================================
+   Accessibility + layout additions (audit remediation)
+   ========================================================================== */
+
+/* Skip link — first tab stop, visible only when focused (WCAG 2.4.1) */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100000;
+}
+.skip-link:focus {
+  left: 0.5rem;
+  top: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  background: #00e6ff;
+  color: #000;
+  font-weight: 600;
+  text-decoration: none;
 }
 
-.cosmic-card:hover {
-  box-shadow: 0 0 24px rgba(0, 255, 255, 0.35);
-}
+/* Offset page content below the fixed site nav */
+.site-content { padding-top: 44px; }
+#main-content:focus { outline: none; }
 
-/* simple star field */
-.stars {
-  background-image: url("https://raw.githubusercontent.com/vedant-jain03/starfield/main/stars.png");
-  opacity: 0.18;
-  animation: drift 160s linear infinite;
-}
-
-@keyframes drift {
-  from {
-    transform: translateY(0);
+/* Reduced-motion backstop. The JS rAF loops are gated in their own components;
+   this catches every CSS animation, transition and smooth scroll. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
-  to {
-    transform: translateY(-600px);
-  }
-}
-/* Attempt to hide common Next dev badges — use only for local dev debugging */
-button[title*="Next.js"] ,
-div[title*="Next.js"],
-.__next_devtools,
-.next-devtools,
-button[data-nextjs="devtools"] {
-  display: none !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
 }

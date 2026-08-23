@@ -95,7 +95,7 @@ export default function EducationBookModal({ onClose }: Props) {
               <Image src="/education/profile.png" alt="Profile" width={480} height={480} style={{ objectFit: "cover" }} />
             </div>
             <div className="mt-3 text-base font-semibold text-center md:text-lg text-cyan-100">Kumar Shivraj Bhakat</div>
-            <div className="mt-1 text-xs md:text-sm text-cyan-200/70">Bengaluru, India</div>
+            <div className="mt-1 text-xs md:text-sm text-cyan-200/70">Nagpur, India</div>
           </div>
         );
       case 2:
@@ -103,7 +103,7 @@ export default function EducationBookModal({ onClose }: Props) {
           <div className="p-4 md:p-6">
             <h3 className={headingClass}>Introduction</h3>
             <p className={bodyClass}>
-              I am Kumar Shivraj Bhakat, a student of Computer Science with a specialization in AI &amp; ML.
+              I am Kumar Shivraj Bhakat, a Computer Science graduate specializing in AI &amp; ML, now working as an AI/ML Engineer.
               This book contains my educational records and a summary of my academic journey.
             </p>
           </div>
@@ -124,7 +124,7 @@ export default function EducationBookModal({ onClose }: Props) {
               <div className="mb-2 text-xs md:text-sm text-cyan-200/60">Marks sheet preview (tap to enlarge)</div>
               <button
                 onClick={() => setFullImage("/education/12th-marksheet.png")}
-                className="w-full overflow-hidden border rounded-md border-cyan-400/8 bg-black/08"
+                className="w-full overflow-hidden border rounded-md border-cyan-400/8 bg-black/20"
                 aria-label="Open 12th marksheet"
                 type="button"
               >
@@ -141,7 +141,7 @@ export default function EducationBookModal({ onClose }: Props) {
           <div className="p-4 md:p-6">
             <h3 className={headingClass}>Summary</h3>
             <p className={bodyClass}>
-              Strong academic performance through secondary and higher secondary education, currently pursuing B.Tech in CSE with focus on AI &amp; ML.
+              Strong academic performance through secondary and higher secondary education, culminating in a B.Tech in CSE with a focus on AI &amp; ML.
             </p>
           </div>
         );
@@ -180,7 +180,7 @@ export default function EducationBookModal({ onClose }: Props) {
               <div className="mb-2 text-xs md:text-sm text-cyan-200/60">Marks sheet preview (tap to enlarge)</div>
               <button
                 onClick={() => setFullImage("/education/10th-marksheet.png")}
-                className="w-full overflow-hidden border rounded-md border-cyan-400/8 bg-black/08"
+                className="w-full overflow-hidden border rounded-md border-cyan-400/8 bg-black/20"
                 aria-label="Open 10th marksheet"
                 type="button"
               >
@@ -199,14 +199,14 @@ export default function EducationBookModal({ onClose }: Props) {
               <p><span className={labelClass}>University:</span> JAIN (Deemed-to-be University)</p>
               <p><span className={labelClass}>Degree:</span> B.Tech - Computer Science &amp; Engineering</p>
               <p><span className={labelClass}>Year of pass out:</span> 2025</p>
-              <p className="mt-2"><span className="font-bold text-cyan-200">CGPA Obtained:</span> <span className="ml-2 text-xl md:text-2xl text-cyan-100">8.282</span></p>
+              <p className="mt-2"><span className="font-bold text-cyan-200">CGPA Obtained:</span> <span className="ml-2 text-xl md:text-2xl text-cyan-100">8.20</span></p>
             </div>
 
             <div className="mt-3">
               <div className="mb-2 text-xs md:text-sm text-cyan-200/60">Degree preview (tap to enlarge)</div>
               <button
                 onClick={() => setFullImage("/education/degree-certificate.png")}
-                className="w-full overflow-hidden border rounded-md border-cyan-400/8 bg-black/08"
+                className="w-full overflow-hidden border rounded-md border-cyan-400/8 bg-black/20"
                 aria-label="Open degree certificate"
                 type="button"
               >
@@ -290,7 +290,7 @@ export default function EducationBookModal({ onClose }: Props) {
             <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: coverOpened ? 1 : 0, scale: coverOpened ? 1 : 0.98 }} transition={{ delay: coverOpened ? 0.12 : 0, duration: 0.32 }} className="relative h-full">
               <div className="flex flex-row items-stretch h-full gap-3">
                 {/* LEFT PAGE */}
-                <div className="relative flex-shrink-0 w-1/2 min-w-0 overflow-auto border rounded-md border-cyan-400/6 bg-black/08" style={{ transformStyle: "preserve-3d" }}>
+                <div className="relative flex-shrink-0 w-1/2 min-w-0 overflow-auto border rounded-md border-cyan-400/6 bg-black/20" style={{ transformStyle: "preserve-3d" }}>
                   <div className="p-3 md:p-4">{leftPageContent(leftIndex)}</div>
 
                   <motion.div drag="x" dragConstraints={{ left: -80, right: 80 }} onDragEnd={(e, info) => handleDragEnd(info, "left")} className="absolute inset-y-0 left-0 w-1/2 bg-transparent" />
@@ -302,7 +302,7 @@ export default function EducationBookModal({ onClose }: Props) {
                 </div>
 
                 {/* RIGHT PAGE */}
-                <div className="relative flex-shrink-0 w-1/2 min-w-0 overflow-auto border rounded-md border-cyan-400/6 bg-black/08" style={{ perspective: 1200 }}>
+                <div className="relative flex-shrink-0 w-1/2 min-w-0 overflow-auto border rounded-md border-cyan-400/6 bg-black/20" style={{ perspective: 1200 }}>
                   <div className="p-3 md:p-4">{rightPageContent(rightIndex)}</div>
 
                   {/* overlay flip: pointer-events enabled only on md+ to avoid overlay/white artifact on small screens */}

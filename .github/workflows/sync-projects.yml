@@ -1,0 +1,47 @@
+name: Sync projects from GitHub
+
+on:
+  schedule:
+    - cron: "17 4 * * *" # 04:17 UTC daily
+  workflow_dispatch:
+  repository_dispatch:
+    types: [portfolio-refresh] # other repos can ping this on push
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Regenerate projects.json
+        run: node scripts/sync-github-projects.mjs
+        env:
+          # PAT with public_repo + read:user. The repo-scoped GITHUB_TOKEN
+          # cannot read user-level pinned items.
+          GH_TOKEN: ${{ secrets.PORTFOLIO_GH_PAT }}
+
+      - name: Validate the generated file
+        run: node scripts/validate-content.mjs
+
+      # A PR rather than a direct push: this file decides what the portfolio
+      # claims about your work, so it gets one human look before it ships.
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore(data): sync projects.json from GitHub"
+          title: "chore(data): sync projects.json"
+          body: |
+            Automated daily sync from the GitHub API.
+
+            Only repos tagged with the `portfolio` topic are included.
+            Hand-written copy lives in `src/data/projects.overrides.json`
+            and always wins over API values — review the diff before merging.
+          branch: bot/sync-projects
+          add-paths: src/data/projects.json

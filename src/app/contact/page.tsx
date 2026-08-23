@@ -85,7 +85,11 @@ function TypingText({
   }, [text, speed, prefersReduced]);
 
   return (
-    <span className={className} aria-live="polite">
+    // The full string is announced once. Previously the animating span itself
+    // carried aria-live, so a 139-character intro queued ~139 announcements.
+    <span className={className}>
+      <span className="sr-only">{text}</span>
+      <span aria-hidden="true">
       {visible}
       {cursor && !prefersReduced && (
         <span className="ml-2 animate-blink" aria-hidden>
@@ -103,6 +107,7 @@ function TypingText({
           }
         }
       `}</style>
+      </span>
     </span>
   );
 }

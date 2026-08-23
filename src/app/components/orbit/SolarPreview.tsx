@@ -87,8 +87,14 @@ export default function SolarPreview({ scale = 0.72, height = "360px" }: { scale
   }, []);
 
   // Preview markup (no overlay — global overlay handles it)
+  //
+  // The preview scales a 560px-tall hero into a 220-360px clipped box, which
+  // left ~8 focusable planet buttons per page reachable by keyboard but
+  // invisible (WCAG 2.4.11). It is a decorative echo of the home page — real
+  // navigation lives in the site header — so it is removed from the tab order
+  // and the accessibility tree entirely.
   return (
-    <div ref={rootRef} style={{ width: "100%" }}>
+    <div ref={rootRef} style={{ width: "100%" }} aria-hidden="true" inert>
       <div
         style={{ height, display: "flex", alignItems: "center", justifyContent: "center" }}
         className="relative w-full overflow-hidden border solar-preview-box rounded-xl border-white/6 bg-black/60"
@@ -104,7 +110,7 @@ export default function SolarPreview({ scale = 0.72, height = "360px" }: { scale
             justifyContent: "center",
           }}
       >
-          <HeroSolar />
+          <HeroSolar asHeading={false} />
         </div>
       </div>
 

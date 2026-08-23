@@ -19,9 +19,13 @@ export default function DynamicCosmic() {
     let height = 0;
     let raf = 0;
     let running = true;
-    const DPR = Math.max(1, window.devicePixelRatio || 1);
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    // Cap DPR: was uncapped, so a 3x phone allocated 9x the pixels of the CSS box.
+    const DPR = Math.min(coarse ? 1.5 : 2, Math.max(1, window.devicePixelRatio || 1));
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     // star and blob containers
+    let bgGradient: CanvasGradient | null = null;
     let stars: any[] = [];
     let blobs: any[] = [];
 
@@ -37,7 +41,7 @@ export default function DynamicCosmic() {
           x: Math.random(),
           y: Math.random(),
           z,
-          baseAlpha: 0.16 + Math.random() * 0.8,
+          baseAlpha: 0.10 + Math.random() * 0.35,
           tw: Math.random() * Math.PI * 2,
           size: 0.6 + Math.random() * (1.6 - layer * 0.35),
         });
@@ -69,6 +73,11 @@ export default function DynamicCosmic() {
       // set transform so we can draw using CSS pixel coordinates
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
+      // rebuild the background gradient once per resize instead of per frame
+      bgGradient = ctx.createLinearGradient(0, 0, 0, height);
+      bgGradient.addColorStop(0, "rgba(5,8,14,1)");
+      bgGradient.addColorStop(1, "rgba(8,6,18,1)");
+
       // recreate particles for new density
       initParticles();
     }
@@ -88,11 +97,7 @@ export default function DynamicCosmic() {
       // clear
       ctx.clearRect(0, 0, width, height);
 
-      // subtle background gradient
-      const g = ctx.createLinearGradient(0, 0, 0, height);
-      g.addColorStop(0, "rgba(5,8,14,1)");
-      g.addColorStop(1, "rgba(8,6,18,1)");
-      ctx.fillStyle = g;
+      ctx.fillStyle = bgGradient ?? "rgba(5,8,14,1)";
       ctx.fillRect(0, 0, width, height);
 
       // draw nebula blobs
@@ -184,8 +189,18 @@ export default function DynamicCosmic() {
     // start
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
-    window.addEventListener("mousemove", onMove);
 
+    if (reduced) {
+      // Honour prefers-reduced-motion: paint a single static frame.
+      tick();
+      cancelAnimationFrame(raf);
+      running = false;
+      return () => {
+        window.removeEventListener("resize", resizeCanvas);
+      };
+    }
+
+    window.addEventListener("mousemove", onMove);
     raf = requestAnimationFrame(tick);
 
     // cleanup
@@ -200,6 +215,8 @@ export default function DynamicCosmic() {
   return (
     <canvas
       ref={canvasRef}
+      aria-hidden="true"
+      role="presentation"
       className="pointer-events-none dynamic-cosmic"
       style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 0 }}
     />

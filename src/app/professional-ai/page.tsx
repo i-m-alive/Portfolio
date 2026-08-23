@@ -343,6 +343,7 @@ function Deck({
 
   // 👇 touch state for swipe
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const deckRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     indexRef.current = index;
@@ -364,10 +365,21 @@ function Deck({
   };
   moveRef.current = move;
 
+  // Arrow keys are scoped to this widget: it must contain focus or be
+  // hovered. PageUp/PageDown are deliberately NOT bound — they are the
+  // primary keyboard page-scroll keys and binding them broke scrolling.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight" || e.key === "PageDown") moveRef.current(1);
-      if (e.key === "ArrowLeft" || e.key === "PageUp") moveRef.current(-1);
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      const t = e.target as HTMLElement | null;
+      if (t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return;
+      const root = deckRef.current;
+      if (!root) return;
+      const active =
+        root.contains(document.activeElement) || root.matches(":hover");
+      if (!active) return;
+      e.preventDefault();
+      moveRef.current(e.key === "ArrowRight" ? 1 : -1);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -408,7 +420,7 @@ function Deck({
   const ARROW_Z = 1200;
 
   return (
-    <div className="flex items-center justify-center w-full">
+    <div ref={deckRef} className="flex items-center justify-center w-full">
       <div
         className="relative h-[420px] w-full max-w-4xl flex items-center justify-center select-none"
         style={{ overflow: "visible" }}
@@ -622,6 +634,7 @@ function ProjectCardContent({ p }: { p: any }): ReactElement{
             Object.entries(p.metrics).map(([k, v]) => (
               <div key={k}>
                 <div className="text-xs text-white/60">{k}</div>
+                <div className="font-semibold text-white">{String(v)}</div>
               </div>
             ))
           ) : (

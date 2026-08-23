@@ -27,7 +27,12 @@ const BASE_PLANETS: PlanetDef[] = [
   { id: "projects", label: "Projects", icon: "/orbit_icons/icon-projects.svg", distance: 420, size: 110, themeClass: "theme-ai", goto: "/projects" },
 ];
 
-export default function HeroSolar() {
+/**
+ * @param asHeading  Render the name as the page <h1>. True on the home page,
+ *   false when embedded in SolarPreview — otherwise every inner page shipped a
+ *   second <h1> that was not its own title.
+ */
+export default function HeroSolar({ asHeading = true }: { asHeading?: boolean } = {}) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const elapsedRef = useRef(0);
   const [t, setT] = useState(0);
@@ -510,12 +515,21 @@ export default function HeroSolar() {
             zIndex: 220, // ensure heading sits above planets
           }}
         >
-          <h1
-            className="text-3xl font-extrabold leading-tight tracking-wide text-white heading-title md:text-4xl"
-            style={{ textShadow: "0 6px 18px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.02)", margin: 0 }}
-          >
-            Kumar Shivraj Bhakat
-          </h1>
+          {asHeading ? (
+            <h1
+              className="text-3xl font-extrabold leading-tight tracking-wide text-white heading-title md:text-4xl"
+              style={{ textShadow: "0 6px 18px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.02)", margin: 0 }}
+            >
+              Kumar Shivraj Bhakat
+            </h1>
+          ) : (
+            <p
+              className="text-3xl font-extrabold leading-tight tracking-wide text-white heading-title md:text-4xl"
+              style={{ textShadow: "0 6px 18px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.02)", margin: 0 }}
+            >
+              Kumar Shivraj Bhakat
+            </p>
+          )}
 
           <p className="mt-1 text-sm text-white/60" style={{ marginTop: 6 }}>
             Welcome to My Portfolio Universe 🚀

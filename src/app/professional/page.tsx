@@ -50,7 +50,12 @@ function TypingText({
   const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (reduceMotion) return undefined;
+    // Reduced motion: show the finished text immediately. Returning early
+    // without setting it left the summary paragraph permanently empty.
+    if (reduceMotion) {
+      setVisible(text);
+      return undefined;
+    }
 
     // reset
     idxRef.current = 0;
@@ -73,13 +78,17 @@ function TypingText({
   }, [text, speed, reduceMotion]);
 
   return (
-    <span className={`typing-text ${className}`} aria-live="polite">
+    // Announce the finished string once rather than on every character tick.
+    <span className={`typing-text ${className}`}>
+      <span className="sr-only">{text}</span>
+      <span aria-hidden="true">
       {visible}
       {cursor && !reduceMotion && (
         <span className="typing-cursor" aria-hidden>
           ▍
         </span>
       )}
+      </span>
       <style jsx>{`
         .typing-text {
           white-space: pre-wrap;
@@ -191,6 +200,19 @@ const SKILL_GROUPS = [
 ];
 
 const TIMELINE = [
+  {
+    id: "navikenz-fulltime",
+    company: "Navikenz",
+    role: "Software Engineer — AI/ML & Cloud",
+    period: "Oct 2025 – Present",
+    detail:
+      "Full-time AI/ML and cloud engineering: production model integration, RAG pipelines and Azure deployment.",
+    logo: "/education/navikenz-intern.png",
+    bullets: [
+      "Production LLM and RAG systems on Azure",
+      "MLOps: containerized delivery and CI/CD",
+    ],
+  },
   {
     id: "navikenz-intern",
     company: "Navikenz",
@@ -544,11 +566,9 @@ export default function ProfessionalPage() {
           - All interactive elements have aria-labels or semantic tags
           ============================================ */}
       <style jsx global>{`
-        /* small global helper for subtle focus outlines */
-        :focus {
-          outline: 2px solid rgba(3, 218, 197, 0.14);
-          outline-offset: 2px;
-        }
+        /* Focus ring is inherited from globals.css (#00e6ff, 13.4:1).
+           A page-scoped override here previously set rgba(3,218,197,0.14),
+           which composited to 1.29:1 — effectively invisible. */
 
         /* make sure the background canvas always sits behind content */
         .dynamic-cosmic {
@@ -557,9 +577,6 @@ export default function ProfessionalPage() {
 
         /* optionally limit card widths for smaller screens to avoid overflow */
         @media (max-width: 1024px) {
-          .max-w-[420px] {
-            max-width: 100% !important;
-          }
         }
       `}</style>
     </main>

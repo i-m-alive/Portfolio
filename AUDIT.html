@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portfolio Survey Docket</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Spectral:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --paper:#EBEEEC; --surface:#FFFFFF; --surface-2:#F4F6F4;
+  --ink:#15191B; --ink-2:#3D4A4E; --muted:#66757A;
+  --rule:#D2D9D5; --rule-strong:#B4BEBA;
+  --accent:#134851; --accent-2:#1B6470;
+  --sev-block:#8F2618; --sev-high:#A05C11; --sev-med:#5E6C24; --sev-low:#63706F;
+  --sev-block-bg:#F6E4E0; --sev-high-bg:#F8EDDC; --sev-med-bg:#EDF0DE; --sev-low-bg:#E7EBEA;
+  --ok:#2F6B45; --ok-bg:#E2EFE6;
+  --shadow:0 1px 2px rgba(19,45,50,.06), 0 8px 24px rgba(19,45,50,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1214; --surface:#151A1C; --surface-2:#1B2225;
+    --ink:#E7EDEB; --ink-2:#B6C3C3; --muted:#8A9A9C;
+    --rule:#242D30; --rule-strong:#354145;
+    --accent:#63B6C2; --accent-2:#8ACDD6;
+    --sev-block:#E8836F; --sev-high:#DEA652; --sev-med:#A9B96A; --sev-low:#8FA09F;
+    --sev-block-bg:#2C1A16; --sev-high-bg:#2C2415; --sev-med-bg:#212615; --sev-low-bg:#1D2426;
+    --ok:#6FBF8C; --ok-bg:#16271D;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1214; --surface:#151A1C; --surface-2:#1B2225;
+  --ink:#E7EDEB; --ink-2:#B6C3C3; --muted:#8A9A9C;
+  --rule:#242D30; --rule-strong:#354145;
+  --accent:#63B6C2; --accent-2:#8ACDD6;
+  --sev-block:#E8836F; --sev-high:#DEA652; --sev-med:#A9B96A; --sev-low:#8FA09F;
+  --sev-block-bg:#2C1A16; --sev-high-bg:#2C2415; --sev-med-bg:#212615; --sev-low-bg:#1D2426;
+  --ok:#6FBF8C; --ok-bg:#16271D;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.3);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:Spectral, Georgia, serif; font-size:16.5px; line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1140px; margin:0 auto; padding:0 28px 120px}
+
+h1,h2,h3,h4,.d{font-family:Archivo, "Helvetica Neue", Arial, sans-serif; text-wrap:balance}
+h2{font-size:1.55rem; font-weight:700; letter-spacing:-.015em; margin:0}
+h3{font-size:1.06rem; font-weight:600; margin:0}
+code,.m{font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace}
+code{font-size:.845em; background:var(--surface-2); border:1px solid var(--rule);
+     padding:.1em .38em; border-radius:3px; color:var(--ink-2); white-space:nowrap}
+a{color:var(--accent-2)}
+:focus-visible{outline:2px solid var(--accent-2); outline-offset:3px; border-radius:2px}
+
+/* ---------- masthead ---------- */
+.mast{border-bottom:2px solid var(--ink); padding:44px 0 18px; margin-bottom:34px}
+.mast .kick{font-family:"IBM Plex Mono",monospace; font-size:.7rem; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--muted); display:flex; gap:14px; flex-wrap:wrap}
+.mast h1{font-size:clamp(2.1rem,5.4vw,3.3rem); font-weight:700; letter-spacing:-.03em;
+  line-height:1.02; margin:.34em 0 .3em}
+.mast .sub{font-size:1.12rem; color:var(--ink-2); max-width:64ch; margin:0}
+
+/* ---------- verdict ---------- */
+.verdict{background:var(--surface); border:1px solid var(--rule); border-left:4px solid var(--accent);
+  border-radius:4px; padding:24px 26px; box-shadow:var(--shadow); margin-bottom:34px}
+.verdict p{margin:0 0 .8em} .verdict p:last-child{margin-bottom:0}
+
+/* ---------- instrument panel ---------- */
+.panel{display:grid; grid-template-columns:repeat(auto-fit,minmax(148px,1fr)); gap:1px;
+  background:var(--rule); border:1px solid var(--rule); border-radius:4px; overflow:hidden; margin-bottom:14px}
+.cell{background:var(--surface); padding:15px 16px 13px}
+.cell .n{font-family:Archivo,sans-serif; font-size:1.72rem; font-weight:700; line-height:1;
+  letter-spacing:-.03em; font-variant-numeric:tabular-nums; display:block}
+.cell .l{font-family:"IBM Plex Mono",monospace; font-size:.655rem; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--muted); margin-top:7px; display:block; line-height:1.45}
+.n.bad{color:var(--sev-block)} .n.warn{color:var(--sev-high)} .n.good{color:var(--ok)}
+
+/* ---------- section ---------- */
+section{margin-top:56px; scroll-margin-top:20px}
+.shead{display:flex; align-items:baseline; gap:14px; border-bottom:1px solid var(--rule-strong);
+  padding-bottom:9px; margin-bottom:22px; flex-wrap:wrap}
+.shead .num{font-family:"IBM Plex Mono",monospace; font-size:.76rem; font-weight:600;
+  color:var(--accent); letter-spacing:.08em}
+.shead .meta{margin-left:auto; font-family:"IBM Plex Mono",monospace; font-size:.7rem;
+  color:var(--muted); letter-spacing:.06em}
+.lede{color:var(--ink-2); max-width:70ch; margin:0 0 22px}
+
+/* ---------- finding record ---------- */
+.rec{background:var(--surface); border:1px solid var(--rule); border-radius:4px;
+  margin-bottom:14px; overflow:hidden; box-shadow:var(--shadow); display:grid;
+  grid-template-columns:5px 1fr}
+.rec .stripe{background:var(--sev-low)}
+.rec.block .stripe{background:var(--sev-block)}
+.rec.high  .stripe{background:var(--sev-high)}
+.rec.med   .stripe{background:var(--sev-med)}
+.rec .body{padding:17px 20px 18px; min-width:0}
+.rtop{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px}
+.rid{font-family:"IBM Plex Mono",monospace; font-size:.7rem; font-weight:600; color:var(--muted);
+  letter-spacing:.08em}
+.chip{font-family:"IBM Plex Mono",monospace; font-size:.62rem; font-weight:600; letter-spacing:.11em;
+  text-transform:uppercase; padding:3px 8px; border-radius:3px; white-space:nowrap}
+.chip.block{background:var(--sev-block-bg); color:var(--sev-block)}
+.chip.high {background:var(--sev-high-bg);  color:var(--sev-high)}
+.chip.med  {background:var(--sev-med-bg);   color:var(--sev-med)}
+.chip.low  {background:var(--sev-low-bg);   color:var(--sev-low)}
+.chip.ok   {background:var(--ok-bg);        color:var(--ok)}
+.rec h3{margin:0 0 9px; font-size:1.045rem}
+.rec p{margin:0 0 9px; font-size:.945rem; color:var(--ink-2)}
+.rec p:last-child{margin-bottom:0}
+.ev{background:var(--surface-2); border:1px solid var(--rule); border-left:2px solid var(--rule-strong);
+  border-radius:3px; padding:10px 13px; margin:10px 0; font-family:"IBM Plex Mono",monospace;
+  font-size:.775rem; line-height:1.68; color:var(--ink-2); overflow-x:auto; white-space:pre}
+.fix{font-size:.92rem; color:var(--ink)}
+.fix b{font-family:Archivo,sans-serif; font-size:.68rem; letter-spacing:.11em; text-transform:uppercase;
+  color:var(--accent); display:block; margin-bottom:3px; font-weight:600}
+
+/* ---------- table ---------- */
+.tw{overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface);
+  box-shadow:var(--shadow); margin-bottom:16px}
+table{border-collapse:collapse; width:100%; font-size:.885rem; min-width:520px}
+th{font-family:Archivo,sans-serif; font-size:.655rem; letter-spacing:.11em; text-transform:uppercase;
+  text-align:left; padding:10px 14px; color:var(--muted); border-bottom:1px solid var(--rule-strong);
+  white-space:nowrap; font-weight:600; background:var(--surface-2)}
+td{padding:9px 14px; border-bottom:1px solid var(--rule); vertical-align:top; color:var(--ink-2)}
+tr:last-child td{border-bottom:none}
+td.n{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; white-space:nowrap}
+td strong{color:var(--ink); font-weight:600}
+
+/* ---------- misc ---------- */
+.note{border-left:3px solid var(--accent); background:var(--surface-2); padding:13px 17px;
+  border-radius:0 4px 4px 0; font-size:.915rem; color:var(--ink-2); margin:18px 0}
+.note b{color:var(--ink); font-family:Archivo,sans-serif; font-size:.72rem; letter-spacing:.1em;
+  text-transform:uppercase; display:block; margin-bottom:4px}
+ul.tight{margin:.5em 0; padding-left:1.15em} ul.tight li{margin:.32em 0; color:var(--ink-2); font-size:.94rem}
+.two{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px}
+pre.code{background:var(--surface-2); border:1px solid var(--rule); border-radius:4px; padding:14px 16px;
+  overflow-x:auto; font-family:"IBM Plex Mono",monospace; font-size:.775rem; line-height:1.62;
+  color:var(--ink-2); margin:12px 0}
+.phase{background:var(--surface); border:1px solid var(--rule); border-radius:4px; padding:18px 20px;
+  box-shadow:var(--shadow); margin-bottom:13px; display:grid; grid-template-columns:auto 1fr; gap:18px}
+.phase .tag{font-family:"IBM Plex Mono",monospace; font-size:.66rem; font-weight:600; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--surface); background:var(--accent); padding:4px 9px;
+  border-radius:3px; height:fit-content; white-space:nowrap}
+.phase h3{margin:0 0 7px}
+@media (max-width:560px){ .phase{grid-template-columns:1fr} .wrap{padding:0 18px 80px} }
+footer{margin-top:64px; padding-top:20px; border-top:1px solid var(--rule); color:var(--muted);
+  font-family:"IBM Plex Mono",monospace; font-size:.7rem; letter-spacing:.05em; line-height:1.8}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<div class="mast">
+  <div class="kick"><span>Technical Survey</span><span>Kumar Shivraj Bhakat — Portfolio</span><span>Next 16.0.4 · React 19 · Tailwind v4</span></div>
+  <h1>Portfolio Survey Docket</h1>
+  <p class="sub">A full-stack audit of nine routes — correctness, navigation, accessibility, design system, performance, data integrity, and automation. Every claim below was verified against source, compiled CSS, or the running server.</p>
+</div>
+
+<div class="verdict">
+  <p><strong>The build is clean and the concept is genuinely distinctive.</strong> All nine routes prerender static, TypeScript passes with zero errors, and the orbital navigation is a real idea executed with care. Nothing here is a rescue job.</p>
+  <p><strong>But three structural faults undercut it.</strong> The site has <em>no link graph at all</em> — the homepage ships zero <code>&lt;a&gt;</code> tags, so no crawler can reach eight of your nine pages and four of them have no way back to anywhere. The Tailwind config is silently ignored, so the brand cyan you designed around isn't the one that ships. And <em>half the codebase is unreachable</em> — 34 of 68 files, verified by import-graph traversal.</p>
+  <p>The good news is that the highest-impact fixes are small. A real <code>&lt;nav&gt;</code>, a <code>sitemap.ts</code>, one line in <code>globals.css</code>, and two JSON fields would resolve most of what's costing you visibility today.</p>
+</div>
+
+<div class="panel">
+  <div class="cell"><span class="n good">9/9</span><span class="l">routes build static</span></div>
+  <div class="cell"><span class="n bad">0</span><span class="l">anchor tags on home</span></div>
+  <div class="cell"><span class="n bad">34/68</span><span class="l">files unreachable</span></div>
+  <div class="cell"><span class="n warn">22.9%</span><span class="l">dead lines (2,590)</span></div>
+  <div class="cell"><span class="n bad">12</span><span class="l">unused deps · 58 MB</span></div>
+  <div class="cell"><span class="n warn">101</span><span class="l">wrong-colour usages</span></div>
+</div>
+<div class="panel">
+  <div class="cell"><span class="n bad">90</span><span class="l">lint errors · 33 warn</span></div>
+  <div class="cell"><span class="n warn">47.8 MB</span><span class="l">tracked assets</span></div>
+  <div class="cell"><span class="n">216–225<span style="font-size:.9rem"> KB</span></span><span class="l">first load JS (gzip)</span></div>
+  <div class="cell"><span class="n bad">0</span><span class="l">tests · CI · sitemap</span></div>
+  <div class="cell"><span class="n warn">18 / 42</span><span class="l">cyans / near-blacks</span></div>
+  <div class="cell"><span class="n bad">1</span><span class="l">of 9 pages: correct h1</span></div>
+</div>
+
+<!-- ================= BLOCKERS ================= -->
+<section id="blockers">
+  <div class="shead"><span class="num">01</span><h2>Blockers</h2><span class="meta">6 records · fix before anything else</span></div>
+  <p class="lede">These are ordered by damage done. The first two are cheap to fix and cost you the most.</p>
+
+  <div class="rec block"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">B1</span><span class="chip block">Blocker</span><span class="chip low">SEO · A11y · UX</span></div>
+    <h3>The site has no link graph. Eight of nine pages are unreachable by any crawler.</h3>
+    <p>Navigation works by dispatching a <code>window</code> CustomEvent from a planet click, which <code>PlanetTransitionOverlay.tsx:175</code> converts to <code>router.push()</code>. The destination URL exists only inside a JS event payload. Googlebot renders JS but does not synthesise clicks on arbitrary buttons.</p>
+    <div class="ev">curl localhost:3000/          → 0 &lt;a&gt; tags, 8 &lt;button&gt;
+/education /skills /work-experience /certificates → 0 anchors each
+next/link imported in 2 files site-wide · 3 router.push calls total
+no sitemap.ts · no robots.ts</div>
+    <p>Four pages are total dead ends — a visitor landing on <code>/skills</code> from anywhere has no route onward but the back button. No middle-click, no open-in-new-tab, nothing for a screen reader to enumerate, and no PageRank flowing anywhere.</p>
+    <p class="fix"><b>Fix</b>Add a persistent <code>&lt;nav&gt;</code> in <code>layout.tsx</code> with real <code>&lt;Link&gt;</code>s to all nine routes, plus <code>sitemap.ts</code> and <code>robots.ts</code>. Then make each planet a real <code>&lt;Link href={goto}&gt;</code> and keep the animation as an <code>onClick</code> decoration on top of it — the visual stays identical.</p>
+  </div></div>
+
+  <div class="rec block"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">B2</span><span class="chip block">Blocker</span><span class="chip low">Design</span></div>
+    <h3>Your brand colour does not ship. <code>tailwind.config.js</code> is never loaded.</h3>
+    <p>Tailwind <strong>v4.1.17</strong> is installed via <code>@tailwindcss/postcss</code>, and <code>globals.css</code> opens with <code>@import "tailwindcss"</code> — but the config is v3-style <code>module.exports</code> and there is no <code>@config</code> or <code>@theme</code> directive anywhere. v4 does not auto-discover the file.</p>
+    <div class="ev">intended (tailwind.config.js) : cyan-400 #00e6ff · cyan-500 #00c2ff
+actually shipped (built CSS)  : cyan-400 #00d2ef · cyan-500 #00b7d7
+usages silently affected      : 101
+bg-hero-noise                 : emits nothing
+content glob ./src/components : directory does not exist</div>
+    <p>Meanwhile 11 hand-written <code>#00e6ff</code> literals <em>do</em> render the intended colour — so two different cyans ship side by side in the belief they are one.</p>
+    <p class="fix"><b>Fix</b>Delete <code>tailwind.config.js</code> and move the tokens into a <code>@theme{}</code> block in <code>globals.css</code>. Leaving the file in place guarantees the next person repeats the mistake.</p>
+  </div></div>
+
+  <div class="rec block"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">B3</span><span class="chip block">Blocker</span><span class="chip low">UX · Perf</span></div>
+    <h3>Every navigation is blocked for 2.7–4.5 s, and up to 17.5 s in the worst case.</h3>
+    <p>The transition overlay runs a fixed choreography <em>before</em> navigating — <code>router.push</code> fires only after <code>MOVE_DUR + EXPAND_DUR + 120 = 1520 ms</code>. It then waits for a <code>page-rendered</code> event to dismiss.</p>
+    <p><strong>That event never fires again after first load.</strong> <code>PageReadySignal</code> lives in the root layout with a <code>[]</code> dependency array; the root layout never remounts across App Router navigations. So every hop falls through to blind timers instead: 3,000 ms typical, or <code>MAX_WAIT_FOR_RENDERED = 16000</code> if <code>/Rocket.json</code> (116 KB, fetched <code>cache:"no-store"</code> every single time) fails to load.</p>
+    <div class="ev">click → 1520ms dead time → router.push → 1200–3000ms blurred scrim
+             over an already-rendered page → total 2.7–4.5s per hop</div>
+    <p class="fix"><b>Fix</b>Call <code>router.push</code> immediately and run the animation concurrently; dismiss on <code>usePathname()</code> change rather than the custom event; cap total overlay time near 600 ms. Add <code>[pathname]</code> to the <code>PageReadySignal</code> effect as a stopgap.</p>
+  </div></div>
+
+  <div class="rec block"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">B4</span><span class="chip block">Blocker</span><span class="chip low">Data</span></div>
+    <h3>Two missing JSON fields silently blank out four features on <code>/projects</code>.</h3>
+    <p>None of the six entries in <code>src/data/projects.json</code> sets <code>featured</code> or <code>category</code>. Both are optional in the <code>Project</code> type, and the JSON is cast with <code>as unknown as Project[]</code> — a double assertion that disables all checking. Nothing warns.</p>
+    <div class="ev">featured: 0 occurrences → pinned = []      → PinnedStrip returns null
+category: 0 occurrences → categories = [] → filter pills + dock render nothing
+                                          → every card gets data-cat=""
+                                          → scroll-spy observes nothing
+"Featured AI Projects" heading renders live, over an empty row</div>
+    <p>There is a second bug hiding underneath: the carousel's transform is <code>x: (i - carouselIndex) * -336</code>, which resolves to <code>carouselIndex * 336</code> for <em>every</em> card — all featured cards would stack in one pile the moment <code>featured</code> is populated. The Next arrow also computes <code>Math.min(pinned.length - 1, i + 1)</code> = <code>-1</code> on an empty array.</p>
+    <p class="fix"><b>Fix</b>Add <code>featured</code> and <code>category</code> to all six entries, change the transform to <code>x: -carouselIndex * 336</code>, and clamp the index at zero. Ten minutes of work restores four visible features.</p>
+  </div></div>
+
+  <div class="rec block"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">B5</span><span class="chip block">Blocker</span><span class="chip low">Accessibility</span></div>
+    <h3><code>prefers-reduced-motion</code> is unhandled for every JavaScript animation on the site.</h3>
+    <p>Two CSS media queries exist and both are inert — the one at <code>globals.css:105</code> disables <code>transition</code> and <code>animation</code> on <code>.orbit-planet</code>, but the planets are positioned by inline <code>left</code>/<code>top</code> written from JS state, so they use neither.</p>
+    <p>Ungated and running continuously: the full-screen blur-and-zoom route transition (a textbook vestibular trigger, mandatory on every navigation), the orbit rAF loop on <em>every</em> page via <code>SolarPreview</code>, the 90–220-star canvas with mouse parallax, an infinite typewriter, a 2-second <code>&lt;h3&gt;</code> rotator, 3D book flips at <code>rotateY:-180deg</code>, and pointer-driven <code>rotateZ</code> parallax inside an open modal.</p>
+    <p class="fix"><b>Fix</b>Add the standard global CSS backstop, then a shared <code>usePrefersReducedMotion()</code> hook for the rAF and <code>setInterval</code> loops. Highest value single change: skip the transition overlay entirely and navigate immediately when the preference is set.</p>
+  </div></div>
+
+  <div class="rec block"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">B6</span><span class="chip block">Blocker</span><span class="chip low">SEO</span></div>
+    <h3>All nine pages are <code>"use client"</code>, so per-page metadata is structurally impossible.</h3>
+    <p>A Client Component cannot export <code>metadata</code>. Every route therefore inherits one title and one description from <code>layout.tsx</code> — verified byte-identical across all nine prerendered HTML files.</p>
+    <div class="ev">og: tags        0      twitter: tags   0      JSON-LD    0
+rel=canonical   0      metadataBase    absent  sitemap    absent
+public/social.png = 512×512 (needs 1200×630), wired to nothing
+favicon resolves at 29×32 · src/app/head.tsx is dead (absent from route manifest)</div>
+    <p>A recruiter searching your name gets one indexable page. Sharing any URL on LinkedIn produces a bare link with no card. Google has no machine-readable statement that this site is about a person named Kumar Shivraj Bhakat who is an AI/ML engineer.</p>
+    <p class="fix"><b>Fix</b>Split each route into a thin Server Component wrapper that exports <code>metadata</code> and renders the existing client component unchanged — roughly ten lines per route. Then add <code>metadataBase</code>, a real 1200×630 OG image, and <code>Person</code> + <code>WebSite</code> JSON-LD.</p>
+  </div></div>
+</section>
+
+<!-- ================= CORRECTNESS ================= -->
+<section id="correctness">
+  <div class="shead"><span class="num">02</span><h2>Correctness</h2><span class="meta">live-code defects only</span></div>
+  <p class="lede">Defects in code that actually renders. Bugs found in unreachable files are excluded here and handled in §07 — several of the scariest-looking findings turned out to live in dead code.</p>
+
+  <div class="tw"><table>
+    <thead><tr><th>Sev</th><th>Location</th><th>Defect</th><th>User-visible effect</th></tr></thead>
+    <tbody>
+      <tr><td><span class="chip high">High</span></td><td class="n">HeroSolar.tsx:252</td><td><code>handlePlanetClick</code> defined, <strong>never called</strong>. The dead twin <code>hero.tsx:494</code> is the only file that wires it.</td><td>Clicking a planet never applies the destination theme; the click ripple never draws.</td></tr>
+      <tr><td><span class="chip high">High</span></td><td class="n">professional-ai:621</td><td><code>Object.entries(p.metrics).map(([k,v])</code> renders <code>{k}</code> only — <code>v</code> is destructured and dropped.</td><td>Every project metric shows its label with no value. "Accuracy uplift" with no 18%.</td></tr>
+      <tr><td><span class="chip high">High</span></td><td class="n">Categories.tsx:44</td><td><code>IconButton</code> declared <em>inside</em> the <code>Categories</code> body → new component type every render.</td><td>All eight skill icons unmount and replay their intro animation on every click.</td></tr>
+      <tr><td><span class="chip high">High</span></td><td class="n">Categories.tsx:24 + skills/page.tsx:15</td><td>Selected category has two sources of truth that desync.</td><td>Click a category twice → rim clears but panel stays. Click Close → panel closes but rim stays.</td></tr>
+      <tr><td><span class="chip high">High</span></td><td class="n">professional-ai:367</td><td>Two <code>Deck</code> instances each bind <code>keydown</code> to <code>window</code>.</td><td>One arrow press advances both carousels; the off-screen one silently changes.</td></tr>
+      <tr><td><span class="chip high">High</span></td><td class="n">ExperienceModalParallax:34</td><td>Effect has <code>[]</code> deps and bails on <code>!rootRef.current</code>; mounts with <code>exp={null}</code> and never re-runs.</td><td>The modal's entire parallax feature has never worked.</td></tr>
+      <tr><td><span class="chip high">High</span></td><td class="n">certificates:620</td><td>Arrows positioned at <code>calc(50% ± (w/2 + 72px))</code> inside an <code>overflow:hidden</code> wrapper.</td><td>At 1024 px only ~3.5 px of each arrow is visible. Effectively unclickable on desktop.</td></tr>
+      <tr><td><span class="chip high">High</span></td><td class="n">EducationBookModal:309</td><td>A full-page flip overlay at <code>zIndex:20</code> sits above the marksheet thumbnails.</td><td>Clicking a certificate preview flips the page instead of enlarging it.</td></tr>
+      <tr><td><span class="chip med">Med</span></td><td class="n">page.tsx:15,20</td><td><code>&lt;DynamicCosmic /&gt;</code> rendered <strong>twice</strong>.</td><td>Two full-screen canvases, two rAF loops, two star fields. The second paints an opaque gradient over the first.</td></tr>
+      <tr><td><span class="chip med">Med</span></td><td class="n">SolarPreview.tsx:31</td><td>Re-dispatches <code>planet-transition</code> on <code>window</code> 8 ms later; the global overlay receives it twice and restarts its timeline.</td><td>Transitions on inner pages stutter mid-animation.</td></tr>
+      <tr><td><span class="chip med">Med</span></td><td class="n">TimelineZigzag:74</td><td><code>setInterval(700ms)</code> <em>plus</em> a <code>MutationObserver</code> watching <code>attributes:true</code> on a subtree framer-motion mutates every frame.</td><td>Forced synchronous layout on every animation frame, permanently.</td></tr>
+      <tr><td><span class="chip med">Med</span></td><td class="n">professional/page.tsx:52</td><td><code>if (reduceMotion) return undefined</code> without setting <code>visible</code>.</td><td>Reduced-motion users see an empty summary paragraph. The contact page already has the fix.</td></tr>
+      <tr><td><span class="chip med">Med</span></td><td class="n">ProjectsCarousel:67</td><td><code>moveRef.current = move</code> assigned during render.</td><td>Under React 19 concurrent rendering an abandoned render can leave a stale closure.</td></tr>
+      <tr><td><span class="chip med">Med</span></td><td class="n">EducationBookModal:27</td><td>560 ms flip <code>setTimeout</code> never cleared on unmount.</td><td>Close mid-flip → three setState calls on an unmounted component.</td></tr>
+      <tr><td><span class="chip med">Med</span></td><td class="n">professional-ai:809 · contact:279 · certificates:628</td><td><code>DynamicCosmic</code> mounted as a direct child of a tall <code>&lt;main&gt;</code> instead of an <code>absolute inset-0</code> box; canvas sizes to full scroll height.</td><td>On a 5000 px page at DPR 2 the backing store is ~92 MB of GPU memory.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note"><b>One agent claim I checked and downgraded</b>The report that "every View project button 404s" is not live. The broken link at <code>ProjectCard.tsx:81</code> is real and <code>/projects/minddocs-ai</code> does return 404 — but that component is imported nowhere. <code>/projects</code> uses a local <code>ProjectCard</code> defined at <code>Projects.tsx:287</code>, and the shipped HTML contains zero internal <code>/projects/*</code> hrefs. It is a latent bug in dead code, not a user-facing breakage.</div>
+</section>
+
+<!-- ================= NAV / UX ================= -->
+<section id="ux">
+  <div class="shead"><span class="num">03</span><h2>Navigation &amp; Responsive</h2><span class="meta">structural UX</span></div>
+
+  <div class="rec high"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">U1</span><span class="chip high">High</span></div>
+    <h3><code>/education</code> and <code>/projects</code> are inescapable on a phone.</h3>
+    <p>Both pages gate their only navigation affordance behind <code>hidden md:block</code>. Below 768 px there is no header, no back link, no logo, and no menu — the browser back button is the sole exit.</p>
+  </div></div>
+
+  <div class="rec high"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">U2</span><span class="chip high">High</span></div>
+    <h3>The embedded orbit nav is clipped on every inner page.</h3>
+    <p><code>SolarPreview</code> scales a hero whose stage is a hard <code>560 px</code> into <code>overflow:hidden</code> boxes of 220–360 px. <code>transform: scale()</code> changes the visual size but not the layout box.</p>
+    <div class="ev">work-experience  220px box ← 336px content   116px cut
+certificates     240px box ← 392px content   152px cut
+education        320px box ← 493px content   173px cut
+contact          300px box ← 437px content   137px cut</div>
+    <p>It also drags a duplicate <code>&lt;h1&gt;</code>, a live typewriter, and a full rAF loop onto every page that embeds it.</p>
+    <p class="fix"><b>Fix</b>Build a purpose-made compact <code>&lt;OrbitNav&gt;</code> that renders labelled links at the target size, rather than scaling the full hero into a hole.</p>
+  </div></div>
+
+  <div class="tw"><table>
+    <thead><tr><th>Sev</th><th>Location</th><th>Issue</th></tr></thead>
+    <tbody>
+      <tr><td><span class="chip high">High</span></td><td class="n">HeroSolar.tsx:69</td><td>Measures the padded <code>.orbit-hero</code> instead of the inner <code>.orbit-stage</code>, so <code>stageHalf</code> is 32 px too generous per side. At 375 px all eight planets are crushed into a 121–156 px annulus and the largest overflows the clip.</td></tr>
+      <tr><td><span class="chip high">High</span></td><td class="n">TopRightPanel.tsx:55</td><td><code>w-[400px]</code> with no responsive prefix inside a ~327 px mobile column. Contains the page's only nav; <code>overflow-x-hidden</code> amputates it.</td></tr>
+      <tr><td><span class="chip high">High</span></td><td class="n">skills/page.tsx:88</td><td><code>maxWidth:"120vw"</code> explicitly permits 20% horizontal overflow, then an ancestor clips it away.</td></tr>
+      <tr><td><span class="chip high">High</span></td><td class="n">certificates:352</td><td><code>CARD_MIN_WIDTH = 340</code> forces cards wider than a 375 px viewport minus padding. Every card is cut off.</td></tr>
+      <tr><td><span class="chip high">High</span></td><td class="n">ProjectsCarousel:137</td><td>Arrows at <code>calc(50% - 224px)</code> land at <code>-61px</code> on mobile and are clipped. Swipe is the only remaining control, and it is undiscoverable.</td></tr>
+      <tr><td><span class="chip med">Med</span></td><td class="n">EducationBookModal ×5</td><td><code>bg-black/08</code> — a leading zero is not a valid Tailwind opacity modifier. Confirmed zero matching rules in the built CSS; five panels render fully transparent.</td></tr>
+      <tr><td><span class="chip med">Med</span></td><td class="n">globals.css:335</td><td><code>.fixed.pointer-events-none { z-index:9999 !important }</code> — a blanket <code>!important</code> on a two-utility selector that hijacks stacking site-wide.</td></tr>
+      <tr><td><span class="chip med">Med</span></td><td>Six modals</td><td>Not one locks body scroll (<code>grep</code> for <code>body.style.overflow</code> → zero matches). Two have no Escape handler at all.</td></tr>
+      <tr><td><span class="chip med">Med</span></td><td class="n">globals.css:180,262</td><td>Three competing cursor systems: <code>cursor:none !important</code> on planets, a <code>.cur</code> ship image on <code>.orbit-hero *</code>, and the JS <code>ShipCursor</code> overlay. Net effect — no orbit element ever shows <code>cursor:pointer</code>, on any page.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ================= A11Y ================= -->
+<section id="a11y">
+  <div class="shead"><span class="num">04</span><h2>Accessibility</h2><span class="meta">WCAG 2.2 AA</span></div>
+  <p class="lede">Beyond B1 (no links) and B5 (no reduced-motion handling), which are the two largest failures.</p>
+
+  <div class="tw"><table>
+    <thead><tr><th>Sev</th><th>Criterion</th><th>Finding</th></tr></thead>
+    <tbody>
+      <tr><td><span class="chip block">Crit</span></td><td class="n">2.4.7</td><td><code>professional/page.tsx:546</code> injects a <em>global</em> <code>:focus</code> outline at <code>rgba(3,218,197,0.14)</code> → <strong>1.29:1</strong> on that page's background. Every focusable element on <code>/professional</code> has no perceptible focus ring.</td></tr>
+      <tr><td><span class="chip block">Crit</span></td><td class="n">2.4.7</td><td><code>Projects.tsx:131</code> (search input) and <code>ProjectsCarousel.tsx:130,164</code> set <code>focus:outline-none</code> with no replacement ring.</td></tr>
+      <tr><td><span class="chip block">Crit</span></td><td class="n">2.1.1</td><td>Four components bind <code>keydown</code> to <code>window</code> and swallow <strong><code>PageUp</code>/<code>PageDown</code></strong> — the primary keyboard scroll keys — on <code>/professional</code> and <code>/professional-ai</code>.</td></tr>
+      <tr><td><span class="chip block">Crit</span></td><td class="n">4.1.3</td><td><code>contact:88</code> and <code>professional:76</code> put <code>aria-live="polite"</code> on a typewriter that rebuilds one character every ~28 ms. A 139-character string queues <strong>~139 announcements</strong>. Worse than no ARIA at all.</td></tr>
+      <tr><td><span class="chip block">Crit</span></td><td class="n">4.1.2</td><td><code>Projects.tsx:896</code> — both featured-carousel arrows are icon-only with no accessible name. Announced as "button".</td></tr>
+      <tr><td><span class="chip high">High</span></td><td class="n">1.3.1</td><td><strong>Only <code>/</code> has a correct heading structure.</strong> <code>SolarPreview</code> injects a second <code>&lt;h1&gt;</code> into eight pages; <code>/skills</code> and <code>/projects</code> have no page <code>h1</code> at all; <code>/professional</code> renders its <code>h2</code> before its <code>h1</code>.</td></tr>
+      <tr><td><span class="chip high">High</span></td><td class="n">2.4.11</td><td>~64 planet buttons across the eight embedded previews are focusable but visually clipped. Keyboard users tab into nothing.</td></tr>
+      <tr><td><span class="chip high">High</span></td><td class="n">4.1.2</td><td><code>Projects.tsx:355</code> puts <code>role="button"</code> on a card container. Per ARIA 1.2 that is <em>Children Presentational</em> — it removes the title, excerpt, tags, metric <em>and the nested GitHub link</em> from the accessibility tree.</td></tr>
+      <tr><td><span class="chip high">High</span></td><td class="n">2.1.2</td><td>None of the six modals traps focus, moves focus in on open, or restores it on close. Background is never <code>inert</code>.</td></tr>
+      <tr><td><span class="chip high">High</span></td><td class="n">2.2.2</td><td><code>/skills</code> autoplays a looped 1.29 MB video with <code>pointer-events-none</code> and no controls — no way to pause.</td></tr>
+      <tr><td><span class="chip high">High</span></td><td class="n">1.4.4</td><td><code>html{font-size:16px}</code> hard-overrides the user's browser font-size preference site-wide. Should be <code>100%</code>.</td></tr>
+      <tr><td><span class="chip high">High</span></td><td class="n">1.4.10</td><td>Seven page roots carry <code>overflow:hidden</code>. At 320 px equivalent width, overflowing content is clipped and unreachable instead of scrollable.</td></tr>
+      <tr><td><span class="chip high">High</span></td><td class="n">1.4.3</td><td>Contrast cannot be guaranteed at all: <code>DynamicCosmic</code> paints up to 220 stars at alpha 0.96 and additive-blended nebula directly behind body text. The ratio changes frame to frame.</td></tr>
+      <tr><td><span class="chip med">Med</span></td><td class="n">1.4.11</td><td>Planet button surface <code>bg-white/6</code> → <strong>1.11:1</strong>; inactive carousel dots → <strong>1.22:1</strong>. Dots also differ by colour alone.</td></tr>
+      <tr><td><span class="chip med">Med</span></td><td class="n">1.4.13</td><td><code>Categories.tsx:167</code> reveals labels on <code>group-hover</code> only, never <code>group-focus-within</code>. Keyboard users see eight unlabelled emoji.</td></tr>
+      <tr><td><span class="chip med">Med</span></td><td class="n">2.5.8</td><td>Touch targets below minimum: deck dots 8×8 px, certificate dots 12×12 px, book nav ~24 px tall.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note"><b>The accessibility toggle is unreachable, and would not work if it were</b><code>AccessibilityToggle.tsx</code> is imported only by <code>src/sections/ProfessionalSummary.tsx</code>, which nothing imports. Its high-contrast rule sets <code>background:#fff</code> on <code>&lt;html&gt;</code> — but <code>&lt;body&gt;</code> paints <code>bg-black</code> on top and every descendant carries its own Tailwind colour, so toggling it changes nothing visible.</div>
+</section>
+
+<!-- ================= DESIGN ================= -->
+<section id="design">
+  <div class="shead"><span class="num">05</span><h2>Design System</h2><span class="meta">measured, not estimated</span></div>
+  <p class="lede">There is no design system — there is per-page improvisation with one recurring idea ("cyan glow on dark") implemented independently about eighteen times.</p>
+
+  <div class="panel" style="margin-bottom:20px">
+    <div class="cell"><span class="n bad">18</span><span class="l">distinct "brand" cyans</span></div>
+    <div class="cell"><span class="n bad">42</span><span class="l">near-black backgrounds</span></div>
+    <div class="cell"><span class="n warn">35</span><span class="l">shadow values</span></div>
+    <div class="cell"><span class="n warn">23</span><span class="l">animation durations</span></div>
+    <div class="cell"><span class="n warn">211</span><span class="l">inline style objects</span></div>
+    <div class="cell"><span class="n bad">0</span><span class="l">shared UI components</span></div>
+  </div>
+
+  <div class="rec high"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">D1</span><span class="chip high">High</span></div>
+    <h3>No typeface is loaded. The site renders in Segoe UI.</h3>
+    <p>Zero <code>next/font</code> imports. The only <code>font-family</code> declaration in the entire repository is an orphaned <code>@font-face</code> for <code>"InterVarFallback"</code> whose <code>src</code> is <code>local()</code>-only and which no rule ever references. Zero <code>font-mono</code> usage — conspicuous for a HUD aesthetic.</p>
+    <p class="fix"><b>Fix</b>This is the largest unclaimed piece of the visual identity and the cheapest to claim. One <code>next/font</code> pairing — a technical sans plus a mono for the HUD chrome — would do more for the design than any other single change.</p>
+  </div></div>
+
+  <div class="rec high"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">D2</span><span class="chip high">High</span></div>
+    <h3>189 borders and surfaces sit at 2–8% opacity — below the threshold of visibility.</h3>
+    <p>The dominant surface recipe is <code>bg-white/6</code> + <code>border-white/6</code>. On near-black that is a luminance delta of roughly 0.02. <code>border-cyan-400/6</code> (25 usages) is not perceptible on any display. The card system on <code>/professional-ai</code> is functionally borderless and backgroundless.</p>
+  </div></div>
+
+  <div class="tw"><table>
+    <thead><tr><th>Axis</th><th>State</th><th>Detail</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Buttons</strong></td><td><span class="chip high">20 recipes</span></td><td>7 primary-CTA variants across 4 padding pairs, 3 radii, 4 background treatments. <code>focus:ring</code> present on 1 of 8.</td></tr>
+      <tr><td><strong>Cards</strong></td><td><span class="chip high">25 recipes</span></td><td>7 border colours, 5 radii, 6 padding steps. Glassmorphism applied with no pattern — identical <code>bg-white/3</code> cards get <code>backdrop-blur-xl</code>, <code>-sm</code>, or nothing.</td></tr>
+      <tr><td><strong>Modals</strong></td><td><span class="chip high">6 impls</span></td><td>5 backdrop opacities, 3 blur states, 4 max-widths.</td></tr>
+      <tr><td><strong>Type scale</strong></td><td><span class="chip med">13 sizes</span></td><td>9 Tailwind steps + 4 arbitrary. All 14 arbitrary usages live in one file, which runs a private 11/13/22 px scale — and those bypass the text-scaling variable entirely.</td></tr>
+      <tr><td><strong>Z-index</strong></td><td><span class="chip med">28 values</span></td><td>Across four mechanisms: Tailwind scale, arbitrary classes, inline <code>zIndex</code>, and <code>!important</code> CSS overrides.</td></tr>
+      <tr><td><strong>Motion</strong></td><td><span class="chip med">23 durations</span></td><td>Six values spanning 0.40–0.50 s alone. Only 11 of 60+ transitions specify an easing. One modal uses seven different durations.</td></tr>
+      <tr><td><strong>Spacing</strong></td><td><span class="chip ok">Clean</span></td><td>All padding/margin on Tailwind's 4 px scale. Not one arbitrary spacing value. This axis is genuinely disciplined.</td></tr>
+      <tr><td><strong>Weights</strong></td><td><span class="chip ok">Clean</span></td><td>Four weights, used consistently.</td></tr>
+      <tr><td><strong>Dark mode</strong></td><td><span class="chip med">Implicit</span></td><td>Zero <code>dark:</code> variants and no <code>color-scheme:dark</code> — so native form controls, Firefox scrollbars, and Chrome autofill render light-on-dark.</td></tr>
+    </tbody>
+  </table></div>
+
+  <p class="lede" style="margin-top:18px">Page-to-page, this reads as four products: <code>/</code>, <code>/education</code> and <code>/work-experience</code> are one; <code>/professional</code> is a cyan-tinted variant; <code>/professional-ai</code>, <code>/certificates</code> and <code>/contact</code> are a neutral dark dashboard; <code>/skills</code> and <code>/projects</code> are each their own thing. <code>/projects</code> is the outlier — its root sets no background, no text colour and no padding.</p>
+</section>
+
+<!-- ================= PERF ================= -->
+<section id="perf">
+  <div class="shead"><span class="num">06</span><h2>Performance</h2><span class="meta">measured</span></div>
+
+  <div class="note"><b>Good news first</b>First Load JS is <strong>216–225 KB gzipped</strong> across all routes, with only ~10 KB of spread — everything route-specific is small and well split. Lottie is correctly lazy-loaded. Images mostly set width/height, so CLS is largely handled. The bundle is not your problem.</div>
+
+  <div class="rec high"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">P1</span><span class="chip high">High</span></div>
+    <h3>Twelve dependencies with zero import sites — 58 MB.</h3>
+    <div class="ev">three                 37.7 MB      tsparticles-engine     3.5 MB
+@types/three           4.0 MB      @react-three/drei      3.0 MB
+gsap                   6.3 MB      postprocessing         2.5 MB
+tailwind-merge         1.0 MB      tsparticles-slim       0.9 MB
+@react-three/fiber     0.5 MB      r3f/postprocessing     0.4 MB
+zustand                0.2 MB      react-tsparticles      0.4 MB</div>
+    <p>The "3D orbit hero" uses no WebGL — it is DOM buttons positioned with <code>calc()</code> plus a hand-written 2D canvas. The five files in <code>components/</code> that would have used three.js are all <strong>0 bytes</strong>.</p>
+    <p><strong>Important nuance:</strong> because they are never imported, these do <em>not</em> bloat your shipped JS — verified, no <code>THREE</code>/<code>gsap</code>/<code>tsparticles</code> chunk exists in the build. The real cost is install time, CI duration, CVE surface, and a <code>package.json</code> that advertises a stack the site doesn't use.</p>
+  </div></div>
+
+  <div class="rec high"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">P2</span><span class="chip high">High</span></div>
+    <h3>Uncapped canvas DPR plus per-frame gradient allocation.</h3>
+    <p><code>DynamicCosmic.tsx:22</code> — <code>Math.max(1, devicePixelRatio)</code> with no upper bound. On a 3× phone the backing store is 9× the pixels of the CSS box. Inside the loop, <code>createRadialGradient</code> plus three <code>addColorStop</code> calls run <em>per star per frame</em>.</p>
+    <div class="ev">~90 stars × ~50% above alpha threshold × 60fps
+  ≈ 2,700 gradient objects allocated and discarded per second
+  on a canvas oversampled 9×</div>
+    <p><code>certificates/page.tsx:31–248</code> is a near-verbatim second copy of this component rather than an import. Resize is bound raw with no debounce and re-seeds the entire star field on every event.</p>
+    <p class="fix"><b>Fix</b>Cap DPR at 2 (1.5 on coarse pointers), pre-render one star sprite to an offscreen canvas and <code>drawImage</code> it, hoist the background gradient out of the tick, debounce resize, and pause via <code>visibilitychange</code>.</p>
+  </div></div>
+
+  <div class="tw"><table>
+    <thead><tr><th>Item</th><th>Measured</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>Tracked repo assets</td><td class="n">47.8 MB</td><td><code>.git</code> is 36 MB. Resume PDF triplicated (851 KB × 3).</td></tr>
+      <tr><td><code>src/public/</code></td><td class="n">5.4 MB</td><td>Next serves only the root <code>public/</code>. This entire tree is unreachable at any URL. 14 files are byte-identical duplicates.</td></tr>
+      <tr><td>Largest single images</td><td class="n">3.9 / 3.2 / 2.1 MB</td><td><code>sketch5.jpg</code>, <code>work/avatar4.png</code> (a photo saved as PNG — converts to 36 KB), <code>artimacy/Sketch1.png</code>.</td></tr>
+      <tr><td>webp/avif conversion</td><td class="n">28.6 → 5.7 / 2.7 MB</td><td>80% / 91% saving on the 26 largest, measured with sharp.</td></tr>
+      <tr><td>Unserved <code>.pptx</code></td><td class="n">1.3 MB</td><td>Publicly served, linked from nowhere.</td></tr>
+      <tr><td><code>react-icons</code></td><td class="n">82 MB installed</td><td>Largest dependency — but Next 16's <code>optimizePackageImports</code> collapses it to a single 29.8 KB chunk. Bundle cost is fine; install cost is not.</td></tr>
+      <tr><td>Third-party CSS asset</td><td class="n">1 request</td><td><code>globals.css</code> loads a starfield PNG from a stranger's GitHub repo via <code>raw.githubusercontent.com</code>. No SLA; breaks if that repo moves.</td></tr>
+      <tr><td>Dead CSS</td><td class="n">~130 of 402 lines</td><td>32% of <code>globals.css</code> is unreachable — <code>.video-bg*</code>, <code>.transition-*</code>, <code>.neon-border</code>, <code>.stars</code>, theme classes.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note"><b>Do not run the bulk-delete list as an agent generated it</b>An automated "unreferenced assets" sweep flagged <code>artimacy/cover.jpg</code>, <code>aiims-chatbot/cover.jpg</code>, <code>tourist-buddy/cover.png</code>, three <code>sketches/*.jpg</code> and <code>paper-grain.jpg</code> as safe to delete. They are not — they are referenced indirectly through <code>src/data/projects.json</code>, and all six project covers render live via <code>next/image</code>. Genuinely unreferenced: <code>artimacy/Sketch1.png</code>, <code>sketch6.jpg</code>, <code>crumple.jpg</code>, the <code>.pptx</code>, and <code>videos/unfold.mp4</code>.</div>
+</section>
+
+<!-- ================= DATA ================= -->
+<section id="data">
+  <div class="shead"><span class="num">07</span><h2>Data &amp; Content Integrity</h2><span class="meta">the root cause of most of the above</span></div>
+
+  <div class="rec block"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">C1</span><span class="chip block">Blocker</span><span class="chip low">Credibility</span></div>
+    <h3>Thirteen factual contradictions between the resume and the site.</h3>
+    <p>This is the finding with the most real-world cost. A recruiter comparing your resume to your portfolio will find them disagreeing.</p>
+    <div class="tw" style="margin:12px 0 0"><table>
+      <thead><tr><th>Fact</th><th>Resume</th><th>Site says</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Azure AI-102</strong></td><td>Issued Jun 30 2024</td><td>Displayed as current. Microsoft <em>role-based</em> certs expire after 12 months — this lapsed around Jun 2025 and has read as valid for ~14 months. (AI-900 is Fundamentals and never expires — no action.)</td></tr>
+        <tr><td><strong>Current role</strong></td><td>Navikenz, Oct 2025–present</td><td><code>/professional</code> has no full-time entry at all; its newest item ends Sep 2025 — 11 months stale.</td></tr>
+        <tr><td><strong>Student status</strong></td><td>Graduated Jun 2025</td><td><code>EducationBookModal</code> says "a student of Computer Science" and "currently pursuing B.Tech" — 14 months out of date.</td></tr>
+        <tr><td><strong>CGPA</strong></td><td>8.20</td><td><code>/professional</code> says 8.20; <code>/education</code> says 8.282.</td></tr>
+        <tr><td><strong>Location</strong></td><td>Nagpur</td><td><code>/education</code> says Bengaluru.</td></tr>
+        <tr><td><strong>Futurense</strong></td><td>Jun–Jul 2024, Data Science Intern</td><td>All three pages say Jun–Aug; the title and the duties differ across all three.</td></tr>
+        <tr><td><strong>Certificate count</strong></td><td>3</td><td><code>/professional</code> shows 4 (two of them internships miscategorised as certifications), <code>/professional-ai</code> shows 3, <code>/certificates</code> shows 8.</td></tr>
+      </tbody>
+    </table></div>
+  </div></div>
+
+  <div class="rec high"><div class="stripe"></div><div class="body">
+    <div class="rtop"><span class="rid">C2</span><span class="chip high">High</span></div>
+    <h3>Half the codebase is unreachable — verified by import-graph traversal.</h3>
+    <div class="ev">entry points        : 10 (all page.tsx + layout.tsx)
+total ts/tsx files  : 68
+reachable           : 34
+DEAD                : 34   (6 of them are 0 bytes)
+dead lines          : 2,590 of 11,330   (22.9%)</div>
+    <p>Largest offenders: <code>orbit/hero.tsx</code> (546 lines — a near-identical fork of <code>HeroSolar.tsx</code> that has already diverged and is the direct cause of correctness bug <span class="m">HeroSolar.tsx:252</span>), <code>ExperienceTile.tsx</code> (426), <code>ProfessionalSummary.tsx</code> (136), <code>ExperienceModal.tsx</code> (147), <code>SkillSection.tsx</code> (118).</p>
+    <p>The whole <code>src/sections/</code> directory is orphaned, and it is the only importer of five otherwise live-looking components — including the accessibility toggle.</p>
+  </div></div>
+
+  <div class="tw"><table>
+    <thead><tr><th>Sev</th><th>Finding</th></tr></thead>
+    <tbody>
+      <tr><td><span class="chip high">High</span></td><td><strong>Three sources of truth for the same six projects.</strong> <code>projects.json</code>, <code>professional/page.tsx:226</code>, and <code>professional-ai/page.tsx:690</code> each maintain their own list. The MindDocs metric is written three different ways; Legal Sage's tech stack differs in all three.</td></tr>
+      <tr><td><span class="chip high">High</span></td><td><strong>~718 lines of content data are embedded in <code>.tsx</code> files</strong> versus 170 in the one JSON file. The entire education history lives as JSX inside a <code>switch(idx)</code>.</td></tr>
+      <tr><td><span class="chip high">High</span></td><td><strong>A typo'd field name silently discards three hand-written descriptions.</strong> <code>professional/page.tsx:193</code> authors <code>detail:</code>; the consuming type declares <code>short?</code> and renders neither. Because the array is an untyped <code>const</code> passed by reference, TypeScript's excess-property check never fires. "Promoted to full-time Oct 2025" never reaches the DOM.</td></tr>
+      <tr><td><span class="chip med">Med</span></td><td>No schema, no zod, no shared content type. Certificates are a bare untyped <code>const</code>; the modal takes <code>cert: any</code>. <code>professional-ai</code> alone contains 41 <code>any</code>s.</td></tr>
+      <tr><td><span class="chip med">Med</span></td><td>15 of 22 image paths in <code>projects.json</code> point at files that don't exist — latent, because <code>images[]</code> is typed but never rendered. Also <code>slug:"meet-scheduler"</code> vs the real folder <code>meet-schedule</code>.</td></tr>
+      <tr><td><span class="chip med">Med</span></td><td>Resume exists in six copies of two files. Every live download link serves the <strong>.docx</strong>, never the PDF. Both 851 KB PDFs are unlinked.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ================= AUTOMATION ================= -->
+<section id="automation">
+  <div class="shead"><span class="num">08</span><h2>Automation</h2><span class="meta">GitHub sync · CI · freshness</span></div>
+  <p class="lede">You asked specifically about pulling project updates from GitHub. Here is the recommended architecture, plus the CI that would have caught most of this report automatically.</p>
+
+  <div class="rec"><div class="stripe" style="background:var(--accent)"></div><div class="body">
+    <div class="rtop"><span class="rid">A1</span><span class="chip ok">Recommended</span></div>
+    <h3>GitHub → <code>projects.json</code> via a scheduled Action that opens a PR.</h3>
+    <p>Three options were considered. A scheduled Action that regenerates the JSON and commits it wins for your situation.</p>
+    <div class="tw" style="margin:12px 0"><table>
+      <thead><tr><th></th><th>Action → commit</th><th>Server Component + ISR</th><th>Client fetch</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Fits today</strong></td><td>Site stays fully static</td><td>Needs the repo's first server boundary</td><td>—</td></tr>
+        <tr><td><strong>Rate limit</strong></td><td>Once daily, PAT = 5,000/hr</td><td>Vercel IPs are shared; unauthenticated = 60/hr → intermittent 403s</td><td>60/hr <em>per visitor</em>, token exposed</td></tr>
+        <tr><td><strong>Reviewable</strong></td><td>Every change is a git diff</td><td>Invisible until it renders</td><td>No</td></tr>
+        <tr><td><strong>Failure mode</strong></td><td>Stale but correct</td><td>GitHub outage → failed render</td><td>Blank cards, no SEO</td></tr>
+      </tbody>
+    </table></div>
+    <p>Your content changes weekly at most. Paying a runtime dependency and a production secret for that is a bad trade, and a client fetch is disqualified outright.</p>
+    <p class="fix" style="margin-top:12px"><b>Curation model</b>
+      <strong>Opt in by topic.</strong> Only repos tagged <code>portfolio</code> are pulled — you control the list from the GitHub UI with no code change.<br>
+      <strong>Overrides always win.</strong> A committed <code>projects.overrides.json</code> keyed by repo name beats the API, so your hand-written prose (the five-step MindDocs architecture, for instance) is never overwritten.<br>
+      <strong>Pinned → <code>featured</code>.</strong> Pinned repos come from the GraphQL API, which needs a PAT with <code>read:user</code>. This finally populates the field whose absence causes blocker B4.<br>
+      <strong>Topics → <code>category</code>.</strong> Map <code>llm|rag|langchain</code> → "LLM / RAG", <code>mlops|docker</code> → "MLOps", and so on — fixing the other half of B4.
+    </p>
+    <p style="margin-top:12px">Pull <code>name</code>, <code>description</code>, <code>topics</code>, <code>homepage</code>, <code>stargazers_count</code>, <code>language</code>, <code>pushed_at</code> (a real <code>last_updated</code> instead of a hand-typed one), a README excerpt, and <code>openGraphImageUrl</code> as a cover fallback. Where a repo has no description, fall back to overrides → first README sentence → <code>"${language} project"</code>, and push the repo name onto a warnings list the workflow turns into an issue.</p>
+    <p><strong>Open a PR rather than pushing to <code>main</code></strong> — it keeps a human deciding what the portfolio claims, at the cost of one click a week. Add a <code>repository_dispatch</code> trigger so other repos can ping this one on push for an immediate refresh.</p>
+  </div></div>
+
+  <div class="rec"><div class="stripe" style="background:var(--accent)"></div><div class="body">
+    <div class="rtop"><span class="rid">A2</span><span class="chip ok">High value</span></div>
+    <h3>CI that would have caught most of this report.</h3>
+    <p>There is no <code>.github/</code> directory at all today. Three scripts do the heavy lifting:</p>
+    <ul class="tight">
+      <li><strong><code>check-assets.mjs</code></strong> — scan every <code>"/foo.png"</code>-shaped string in <code>src/</code> and fail if <code>public/foo.png</code> is missing. This alone catches all 21 broken asset paths, and it must read <code>.json</code> as well as <code>.tsx</code>, which is exactly where an automated sweep went wrong earlier in this audit.</li>
+      <li><strong><code>validate-content.mjs</code></strong> — zod schemas over the data files with <code>.strict()</code>, making <code>featured</code> and <code>category</code> <em>required</em>. That turns blocker B4 from a silent blank into a failed build, and <code>.strict()</code> catches typo'd fields like the <code>detail:</code>/<code>short:</code> mismatch.</li>
+      <li><strong><code>tsc --noEmit</code> + <code>eslint .</code> + <code>next build</code></strong> — note that lint will fail on day one against 90 errors, so either land the cleanup first or start with <code>continue-on-error</code> and remove it once green.</li>
+    </ul>
+    <p>Add Lighthouse CI with an accessibility budget, and grouped Dependabot (the three.js packages have tight peer ranges — ungrouped bumps produce PRs that each fail alone and pass together, though the better answer is to remove them entirely).</p>
+  </div></div>
+
+  <div class="rec"><div class="stripe" style="background:var(--accent)"></div><div class="body">
+    <div class="rtop"><span class="rid">A3</span><span class="chip ok">Recommended</span></div>
+    <h3>A weekly freshness job, and one source of truth for the resume.</h3>
+    <p>A Monday cron that opens or updates a single issue when it finds: a role listed as current for over 24 months, a <em>role-based</em> Microsoft cert past its 12-month window (matching <code>AI-102</code>, <code>AZ-###</code>, <code>DP-###</code> — and correctly <em>not</em> flagging Fundamentals certs like AI-900), a <code>last_updated</code> that disagrees with the repo's real <code>pushed_at</code>, and dead external credential URLs. On its first run it would flag the expired AI-102, the 11-month-stale <code>/professional</code> timeline, and the "current student" copy.</p>
+    <p>For the resume: a single <code>src/data/resume.json</code> in the JSON Resume schema, consumed by the three pages that currently each hardcode their own copy, and by a Playwright script that renders the PDF from the same template. One <code>satisfies Exp[]</code> on the mapping restores the excess-property checking that would have caught the <code>detail:</code> bug at compile time.</p>
+    <p>Analytics: none present. <code>@vercel/analytics</code> is cookieless and mounts in <code>layout.tsx</code> — one of the only Server Components you have. The signal worth having is <em>which repo a recruiter actually opens</em>.</p>
+  </div></div>
+</section>
+
+<!-- ================= ROADMAP ================= -->
+<section id="roadmap">
+  <div class="shead"><span class="num">09</span><h2>Sequenced Plan</h2><span class="meta">ordered by value per hour</span></div>
+
+  <div class="phase"><span class="tag">Phase 0 · ~2 h</span><div>
+    <h3>Truth and visibility</h3>
+    <p>Renew or remove the expired AI-102. Fix the CGPA, the location, and the "current student" copy. Add <code>featured</code> + <code>category</code> to <code>projects.json</code> and clamp the carousel index — that un-breaks four features on <code>/projects</code>. Add <code>sitemap.ts</code>, <code>robots.ts</code>, and a real <code>&lt;nav&gt;</code> with nine <code>&lt;Link&gt;</code>s. Replace the untouched create-next-app README.</p>
+  </div></div>
+
+  <div class="phase"><span class="tag">Phase 1 · ~3 h</span><div>
+    <h3>Stop the bleeding</h3>
+    <p>Fix the transition overlay so navigation isn't blocked for seconds (B3). Delete the duplicate <code>&lt;DynamicCosmic /&gt;</code>. Un-hide the mobile navigation on <code>/education</code> and <code>/projects</code>. Add <code>not-found.tsx</code>, <code>error.tsx</code>, <code>loading.tsx</code>. Restore the focus rings on <code>/professional</code> and the search input. Stop hijacking <code>PageUp</code>/<code>PageDown</code>.</p>
+  </div></div>
+
+  <div class="phase"><span class="tag">Phase 2 · ~4 h</span><div>
+    <h3>Delete half the repo</h3>
+    <p>Remove the 34 unreachable files (2,590 lines), the 12 unused dependencies (58 MB), <code>src/public/</code> (5.4 MB), <code>head.tsx</code>, the duplicate resume copies, and the ~130 dead lines of <code>globals.css</code>. Delete <code>orbit/hero.tsx</code> before another edit lands in the wrong twin. Every subsequent change gets cheaper.</p>
+  </div></div>
+
+  <div class="phase"><span class="tag">Phase 3 · ~4 h</span><div>
+    <h3>Metadata and CI</h3>
+    <p>Split the nine routes into server wrappers with per-page metadata. Add <code>metadataBase</code>, a 1200×630 OG image, and JSON-LD. Ship <code>ci.yml</code> with <code>check-assets.mjs</code> and <code>validate-content.mjs</code> so nothing in Phase 0–2 regresses.</p>
+  </div></div>
+
+  <div class="phase"><span class="tag">Phase 4 · ~6 h</span><div>
+    <h3>Design system</h3>
+    <p>Load a typeface. Move tokens into <code>@theme{}</code> and delete <code>tailwind.config.js</code>. Collapse 18 cyans to one, 42 blacks to a four-step ramp, 23 durations to four. Raise the <code>/3</code>–<code>/8</code> opacity cluster to a visible minimum. Extract <code>Surface</code>, <code>Button</code>, and <code>Modal</code> — those three replace roughly 90 bespoke recipes.</p>
+  </div></div>
+
+  <div class="phase"><span class="tag">Phase 5 · ~6 h</span><div>
+    <h3>Automation and consolidation</h3>
+    <p>Ship the GitHub sync workflow with its overrides file. Add the freshness cron and analytics. Then merge <code>/professional</code> and <code>/professional-ai</code> behind one data layer — the duplication between them is the root cause of most of §07.</p>
+  </div></div>
+</section>
+
+<footer>
+  Survey conducted against commit <span class="m">f5dd8eb</span> · Next 16.0.4 · Node v22.16.0 · pnpm 10.23.0<br>
+  Verification: full source read, import-graph reachability, compiled-CSS inspection, and live HTTP against the dev server.<br>
+  Contrast ratios were computed against Tailwind v4 stock cyan, which is what actually ships — see B2.
+</footer>
+
+</div>
+
+</body>
+</html>

@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portfolio — Kumar Shivraj Bhakat
 
-## Getting Started
+Personal portfolio of Kumar Shivraj Bhakat, AI/ML Engineer. An interactive
+orbital hero routes into nine sections covering experience, projects, skills,
+certifications and education.
 
-First, run the development server:
+**Stack:** Next.js 16 (App Router, Turbopack) · React 19 · TypeScript ·
+Tailwind CSS v4 · Framer Motion · Lottie
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm dev          # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Node `>=20.9` (see `.nvmrc`), pnpm 10 (pinned via `packageManager`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Script | Purpose |
+| --- | --- |
+| `pnpm dev` | Dev server |
+| `pnpm build` | Production build |
+| `pnpm start` | Serve the production build |
+| `pnpm typecheck` | `tsc --noEmit` |
+| `pnpm lint` / `lint:fix` | ESLint |
+| `pnpm check:assets` | Fail if any referenced `public/` asset is missing |
+| `pnpm check:content` | Validate `src/data/projects.json` against its schema |
+| `pnpm verify` | typecheck → assets → content → build (what CI runs) |
 
-## Learn More
+## Routes
 
-To learn more about Next.js, take a look at the following resources:
+| Route | Contents |
+| --- | --- |
+| `/` | Orbital hero and site entry |
+| `/professional` | Professional summary, skills, timeline |
+| `/professional-ai` | AI/ML deep dive, model cards, infrastructure |
+| `/work-experience` | Role history |
+| `/skills` | Interactive skills HUD |
+| `/projects` | Project catalogue, filtering and case studies |
+| `/certificates` | Certification deck |
+| `/education` | Education, presented as a flip book |
+| `/contact` | Contact channels and résumé download |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Content
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Project data lives in `src/data/projects.json` and is schema-validated by
+`pnpm check:content`. `featured` and `category` are **required** — both were
+optional once, and their absence silently blanked four sections of `/projects`
+with no error anywhere.
 
-## Deploy on Vercel
+`src/data/projects.overrides.json` holds hand-written copy keyed by GitHub repo
+name. It always wins over values pulled from the GitHub API.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Automation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Workflow | Trigger | Does |
+| --- | --- | --- |
+| `ci.yml` | PR, push to `main` | typecheck, asset check, content validation, build |
+| `sync-projects.yml` | Daily 04:17 UTC, manual, `repository_dispatch` | Regenerates `projects.json` from repos tagged `portfolio` and opens a PR |
+| `freshness.yml` | Mondays 06:00 UTC | Flags expiring role-based certs and stale projects, opens an issue |
+
+The sync workflow needs a `PORTFOLIO_GH_PAT` secret with `public_repo` and
+`read:user` scopes — pinned repositories are a user-level GraphQL field the
+default `GITHUB_TOKEN` cannot read.
+
+To include a repository in the portfolio, add the topic `portfolio` to it.
+
+## Deployment
+
+Deploys to Vercel with no additional configuration. Set
+`NEXT_PUBLIC_SITE_URL` to the production origin — `metadataBase`, the sitemap,
+`robots.txt`, JSON-LD and Open Graph URLs all derive from it (`src/lib/site.ts`).

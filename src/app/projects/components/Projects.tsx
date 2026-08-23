@@ -526,7 +526,7 @@ function ProjectModal(props: {
                 target="_blank"
                 rel="noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="inline-flex items-center justify-center w-full gap-2 px-3 py-2 text-sm rounded-md sm:w-auto bg-white/6 hover:bg:white/8"
+                className="inline-flex items-center justify-center w-full gap-2 px-3 py-2 text-sm rounded-md sm:w-auto bg-white/6 hover:bg-white/8"
               >
                 <AiFillGithub />
                 <span>View Code</span>
@@ -803,9 +803,9 @@ export default function ProjectsSection() {
         {/* header row */}
         <div className="flex items-start justify-between gap-6">
           <div className="flex-1">
-            <h2 className="text-3xl font-bold text-cyan-100">
+            <h1 className="text-3xl font-bold text-cyan-100">
               Projects
-            </h2>
+            </h1>
             <p className="max-w-2xl mt-2 text-sm text-cyan-200/70">
               Selected case studies and code — click a card to open a
               case-study modal.
@@ -898,31 +898,37 @@ export default function ProjectsSection() {
                 onClick={() =>
                   setCarouselIndex((i) => Math.max(0, i - 1))
                 }
+                aria-label="Previous featured project"
                 className="p-2 border rounded-full bg-black/20 border-white/6"
               >
-                <FiChevronLeft />
+                <FiChevronLeft aria-hidden="true" />
               </button>
               <button
                 type="button"
                 onClick={() =>
                   setCarouselIndex((i) =>
-                    Math.min(pinned.length - 1, i + 1)
+                    Math.min(Math.max(0, pinned.length - 1), i + 1)
                   )
                 }
+                aria-label="Next featured project"
                 className="p-2 border rounded-full bg-black/20 border-white/6"
               >
-                <FiChevronRight />
+                <FiChevronRight aria-hidden="true" />
               </button>
             </div>
           </div>
 
           <div className="overflow-hidden">
-            <div className="flex gap-4">
+            <motion.div
+              className="flex gap-4"
+              animate={{ x: -carouselIndex * 336 }}
+              transition={{ type: "spring", stiffness: 220, damping: 28 }}
+            >
               {pinned.map((p, i) => (
-                <motion.div
+                <div
                   key={p.slug}
-                  className="min-w-[320px] transition-transform"
-                  animate={{ x: (i - carouselIndex) * -336 }}
+                  className="min-w-[320px]"
+                  aria-hidden={i !== carouselIndex ? "true" : undefined}
                 >
                   <button
                     type="button"
@@ -958,9 +964,9 @@ export default function ProjectsSection() {
                       )}
                     </div>
                   </button>
-                </motion.div>
+                </div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </div>
 
