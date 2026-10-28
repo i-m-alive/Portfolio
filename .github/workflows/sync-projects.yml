@@ -33,7 +33,7 @@ jobs:
       - name: Validate the result
         run: node scripts/validate-content.mjs
 
-      - uses: peter-evans/create-pull-request@v7
+      - uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "chore(data): refresh project metadata from GitHub"
           title: "chore(data): refresh project metadata"
